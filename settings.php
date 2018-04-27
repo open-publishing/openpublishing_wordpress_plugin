@@ -1,32 +1,32 @@
 <?php
 
 // create custom plugin settings menu
-add_action('admin_menu', 'my_cool_plugin_create_menu');
+add_action('admin_menu', 'openpublishing_create_menu');
 
 
-function my_cool_plugin_create_menu() {
+function openpublishing_create_menu() {
 
-        //create new top-level menu
-        add_menu_page( 'Open Publishing Page', 'Open Publishing', 'manage_options', 'openpublishing-plugin', 'add_openpublishing_menu' );
+  //create new top-level menu
+  add_menu_page( 'Open Publishing Page', 'Open Publishing', 'manage_options', 'openpublishing', 'openpublishing_add_menu' );
 
-        //call register settings function
-        add_action( 'admin_init', 'register_settings' );
+  //call register settings function
+  add_action( 'admin_init', 'openpublishing_register_settings' );
 }
 
-function add_openpublishing_menu() {
+function openpublishing_add_menu() {
 ?>
   <h1>Open Publishing Plugin</h1>
   <p class="about-description">Enrich content with data from the OpenPublishing service</p>
 
 
   <form method="post" action="options.php">
-    <?php settings_fields( 'op-settings-group' ); ?>
-    <?php do_settings_sections( 'op-settings-group' ); ?>
+    <?php settings_fields( 'openpublishing-settings-group' ); ?>
+    <?php do_settings_sections( 'openpublishing-settings-group' ); ?>
     <table class="form-table">
         <tr valign="top">
         <th scope="row">Brand ID*</th>
         <td>
-            <input type="text" name="brand_id" value="<?php echo esc_attr( get_option('brand_id') ); ?>" />
+            <input type="text" name="openpublishing_brand_id" value="<?php echo esc_attr( get_option('openpublishing_brand_id') ); ?>" />
             <span class="description">The Id of your Openpublishing Brand</span>
         </td>
         </tr>
@@ -34,7 +34,7 @@ function add_openpublishing_menu() {
         <tr valign="top">
         <th scope="row">Auth Token*</th>
         <td>
-            <input type="text" name="auth_token" value="<?php echo esc_attr( get_option('auth_token') ); ?>" />
+            <input type="text" name="openpublishing_auth_token" value="<?php echo esc_attr( get_option('openpublishing_auth_token') ); ?>" />
             <span class="description">A token which allows access to your realm as world user</span></td>
         </td>
         </tr>
@@ -42,7 +42,7 @@ function add_openpublishing_menu() {
         <tr valign="top">
         <th scope="row">API Host*</th>
         <td>
-            <input type="text" name="api_host" value="<?php echo esc_attr( get_option('api_host') ); ?>" />
+            <input type="text" name="openpublishing_api_host" value="<?php echo esc_attr( get_option('openpublishing_api_host') ); ?>" />
             <span class="description">Your Openpublishing API url</span>
         </td>
         </tr>
@@ -51,11 +51,11 @@ function add_openpublishing_menu() {
     <p class="about-description">Get more information about Open Publishing substitutions <a href="#faq">here</a></p>
     <table class="form-table">
         <?php
-            for ($i = 1; $i <= 10; $i++) {
-                $tag = 'op_template_tag_' . $i;
-                $template = 'op_template_id_' . $i;
+            for ($element = 1; $element <= 10; $element++) {
+                $tag = 'openpublishing_template_tag_' . $element;
+                $template = 'openpublishing_template_id_' . $element;
                 $id = get_option($template);
-                echo '<tr valign="top"><th scope="row">Tag   ' . $i . '</th>';
+                echo '<tr valign="top"><th scope="row">Tag   ' . $element . '</th>';
                 echo '<td><input type="text" title="tag_name" name="' . $tag . '" value="' . esc_attr( get_option($tag) ) . '" />';
                 echo '<input type="number" title="id (tag_name template id)" name="' . $template . '" value="' . esc_attr( get_option($template) ) . '" />';
                 if ($id) {
@@ -95,7 +95,7 @@ function add_openpublishing_menu() {
                     <ol>
                         <li>Go to <a href="wp-admin/edit.php">posts</a></li>
                         <li>Create new post and treat it like a template, remember a template id (you can see it in the edit url)</li>
-                        <li>(Optional) you can assign special category (like op-templates) to each post to distinguish between others</li>
+                        <li>(Optional) you can assign special category (like openpublishing-templates) to each post to distinguish between others</li>
                     </ol>
                 </li></br>
                 <li>Use special keywords in your template:<code>{title} {subtitle} {price} {grin_url} {source_url} {document_id} {cdn_host} {brand_id}</code></li>
@@ -123,30 +123,30 @@ function add_openpublishing_menu() {
 
 
 
-function register_settings() {
+function openpublishing_register_settings() {
 
   //register our settings
-  register_setting( 'op-settings-group', 'brand_id', array(
+  register_setting( 'openpublishing-settings-group', 'openpublishing_brand_id', array(
     'type'              => 'integer',
     'description'       => 'The Id of your Openpublishing Brand'
   ));
-  register_setting( 'op-settings-group', 'auth_token', array(
+  register_setting( 'openpublishing-settings-group', 'openpublishing_auth_token', array(
     'type'              => 'string',
     'description'       => 'An auth token which allows access to your realm as world user'
   ));
-  register_setting( 'op-settings-group', 'api_host', array(
+  register_setting( 'openpublishing-settings-group', 'openpublishing_api_host', array(
     'type'              => 'string',
     'description'       => 'Your Openpublishing api url'
   ));
-  for ($i = 1; $i <= 10; $i++) {
-      register_setting( 'op-settings-group', 'op_template_id_'.$i, array(
+  for ($element = 1; $element <= 10; $element++) {
+      register_setting( 'openpublishing-settings-group', 'openpublishing_template_id_' . $element, array(
           'type'              => 'integer',
-          'description'       => 'Template id #'.$i
+          'description'       => 'Template id #' . $element
       ));
 
-    register_setting( 'op-settings-group', 'op_template_tag_'.$i, array(
+    register_setting( 'openpublishing-settings-group', 'openpublishing_template_tag_' . $element, array(
         'type'              => 'string',
-        'description'       => 'Tag name '. $i
+        'description'       => 'Tag name '. $element
     ));
   }
 }

@@ -114,9 +114,9 @@ function openpublishing_replace_tags( $text ) {
         $text = str_replace( $replacer, $content, $text);
     }
     //replace common tags with case-insensitive version of str_replace
-    $cdn_host = str_replace('api.', 'cdn.', get_option('api_host'));
+    $cdn_host = str_replace('api.', 'cdn.', get_option('openpublishing_api_host'));
     $text = str_ireplace('{cdn_host}', $cdn_host, $text );
-    $text = str_ireplace('{brand_id}', get_option('brand_id'), $text );
+    $text = str_ireplace('{brand_id}', get_option('openpublishing_brand_id'), $text );
 
     return $text;
 }

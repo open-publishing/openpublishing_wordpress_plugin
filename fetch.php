@@ -4,11 +4,11 @@ namespace Openpublishing\Fetch;
 
 function openpublishing_fetch_objects($guid, $is_collection = false) {
     $HOST = 'op-nginx';
-    $AUTH_TOKEN = get_option('auth_token');
+    $AUTH_TOKEN = get_option('openpublishing_auth_token');
     $COLLECTION_OBJECT = 'document';
 
 
-    $options = array( 'headers' => array( 'Host' => get_option('api_host') ), 'sslverify' => false);
+    $options = array( 'headers' => array( 'Host' => get_option('openpublishing_api_host') ), 'sslverify' => false);
     if ($is_collection) {
         $id = explode('.', $guid)[1];
         $object_name = explode('.', $guid)[0];
@@ -53,8 +53,8 @@ function openpublishing_fetch_objects($guid, $is_collection = false) {
 function openpublishing_fetch_templates() {
     $tmpls = array();
     for ($element = 1; $element <= 10; $element++) {
-        $tag = 'op_template_tag_' . $element;
-        $template = 'op_template_id_' . $element;
+        $tag = 'openpublishing_template_tag_' . $element;
+        $template = 'openpublishing_template_id_' . $element;
         $id = get_option($template);
         $name = get_option($tag);
         $tmpl_content = '';
