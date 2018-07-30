@@ -107,7 +107,7 @@ function openpublishing_replace_tags( $text ) {
         }
         else {
             // add debug info, which is hidden by default
-            $content = '<span class="OP_debug" style="display:none; color:blue;">'.'[<b>'. $tag .':'. $guid.'</b>]'.$content.'</span>';
+            $content = '<span class="OP_debug" style="display:none; color:blue;">'.'[<b>'. $tag .':'. $guid.'</b>]</span>'.$content;
         }
 
         //main replace
