@@ -79,7 +79,7 @@ function openpublishing_replace_tags( $text ) {
         $tag = $set[1]; $object_name = $set[2]; $id = $set[3];
         $guid = $object_name . '.' . $id;
         $replacer = '[' . $tag .':'. $guid . ']';
-        $content = '';
+        $content = ''; $debug_content = '';
         if (!array_key_exists($guid, $all_objects)) {
             // (array) thing give us an empty array if function return is empty
             foreach ((array)Fetch\openpublishing_fetch_objects($guid, in_array($object_name, OPENPUBLISHING_COLLECTION_OBJECTS)) as $obj) {
@@ -91,24 +91,18 @@ function openpublishing_replace_tags( $text ) {
             }
         }
         if (!array_key_exists($guid, $all_objects)) {
-            $content = 'Object "'.$guid.'" was not found. ';
+            $debug_content = '<span style="color:orange;"> Object was not found</span>';
         }
         elseif (!array_key_exists($tag, $templates)) {
-            $content = $content.' Template "'.$tag.'" does not exist. ';
+            $debug_content = '<span style="color:red;"> Template "' . $tag . '" does not exist.<span>';
         }
         else {
             // if template exists and we got an object data from the server
             $content = openpublishing_do_template_replacement($templates[$tag], $all_objects[$guid]);
         }
 
-        //replace not found objects with debug message
-        if (ini_get('display_errors')) {
-            $content = '<span class="OP_debug" style="display:block; color:red;">'.'[<b>'. $tag .':'. $guid.'</b>]'.$content.'</span>';
-        }
-        else {
-            // add debug info, which is hidden by default
-            $content = '<span class="OP_debug" style="display:none; color:blue;">'.'[<b>'. $tag .':'. $guid.'</b>]</span>'.$content;
-        }
+        // add debug info, which is hidden by default
+        $content = '<span class="OP_debug" style="display:none;">[<b>'. $tag .':'. $guid.'</b>]'. $debug_content .'</span>'. $content;
 
         //main replace
         $text = str_replace( $replacer, $content, $text);
