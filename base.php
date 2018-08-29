@@ -9,11 +9,12 @@ if (is_admin() == true)
 }
 
 function openpublishing_get_all_tags($tags, $text) {
-    define('OPENPUBLISHING_COLLECTION_OBJECTS', array('bestseller'));
+    define('OPENPUBLISHING_COLLECTION_OBJECTS', array('bestseller', 'newest', 'most_read'));
     define('OPENPUBLISHING_OBJECTS', array_merge(OPENPUBLISHING_COLLECTION_OBJECTS, array('document')));
 
-    $pattern = '/\[(' . implode('|', $tags) . '):(' . implode('|', OPENPUBLISHING_OBJECTS) . ')\.?(\d+)\]/';
-    // matched 0: whole, 1: tagname, 2: object, 3: id
+    $pattern = '/\[(' . implode('|', $tags) . '):(' . implode('|', OPENPUBLISHING_OBJECTS) . ')\.?(\d+)\:?(en|de)?\]/';
+
+    // matched 0: whole, 1: tagname, 2: object, 3: id, 3: language
     preg_match_all($pattern, $text, $matches, PREG_SET_ORDER);
     return $matches;
 }
@@ -25,14 +26,26 @@ function openpublishing_get_price($obj) {
     }
     return $price;
 }
-function openpublishing_get_catalog($obj, $allObjects) {
-    $catalog = '';
 
-    $catalogGuid = $obj->{'academic'}->{'catalog'};
-    if ($catalogGuid) {
-        $catalog = $allObjects[$catalogGuid]->{'name'};
+function openpublishing_get_subject($obj, $allObjects) {
+    $subject = '';
+
+    if ($obj->{'is_academic'}) {
+        $catalogGuid = $obj->{'academic'}->{'catalog'};
+        if ($catalogGuid) {
+            $catalog = $allObjects[$catalogGuid]->{'name'};
+            // truncate at first hyphen "-"
+            $subject = explode('-', $catalog)[0];
+        }
     }
-    return $catalog;
+    else {
+        $genreGuid = $obj->{'non_academic'}->{'realm_genres'};
+        if ($genreGuid[0]) {
+            // lets take first realm_genre from a list
+            $subject = $allObjects[$genreGuid[0]]->{'name'};
+        }
+    }
+    return $subject;
 }
 
 function openpublishing_get_picture_source($obj) {
@@ -47,14 +60,15 @@ function openpublishing_get_picture_source($obj) {
     return $source;
 }
 
-function openpublishing_do_template_replacement($tmpl, $obj) {
+function openpublishing_do_template_replacement($tmpl, $guid, $all_objects) {
     //replace: 1. hardcoded placeholders 2. object properties if placeholders present
+    $obj = $all_objects[$guid];
     $content = $tmpl;
     $id = explode('.', $obj->{'GUID'})[1];
     $content = str_replace('{title}', $obj->{'title'}, $content );
     $content = str_replace('{subtitle}', $obj->{'subtitle'}, $content );
     $content = str_replace('{price}', openpublishing_get_price($obj), $content );
-    $content = str_replace('{catalog}', openpublishing_get_catalog($obj, $all_objects), $content );
+    $content = str_replace('{subject}', openpublishing_get_subject($obj, $all_objects), $content );
     $content = str_replace('{grin_url}', $obj->{'grin_url'}, $content );
     $content = str_replace('{source_url}', openpublishing_get_picture_source($obj), $content );
     $content = str_replace('{document_id}', $id, $content );
@@ -76,13 +90,13 @@ function openpublishing_replace_tags( $text ) {
 
 
     foreach ($all_tags as $set) {
-        $tag = $set[1]; $object_name = $set[2]; $id = $set[3];
+        $tag = $set[1]; $object_name = $set[2]; $id = $set[3]; $lang = $set[4];
         $guid = $object_name . '.' . $id;
-        $replacer = '[' . $tag .':'. $guid . ']';
+        $replacer = '[' . $tag .':'. $guid . ( $lang?':'. $lang:'') . ']';
         $content = ''; $debug_content = '';
         if (!array_key_exists($guid, $all_objects)) {
             // (array) thing give us an empty array if function return is empty
-            foreach ((array)Fetch\openpublishing_fetch_objects($guid, in_array($object_name, OPENPUBLISHING_COLLECTION_OBJECTS)) as $obj) {
+            foreach ((array)Fetch\openpublishing_fetch_objects($object_name, $id, $lang, in_array($object_name, OPENPUBLISHING_COLLECTION_OBJECTS)) as $obj) {
                 $all_objects[$obj->{'GUID'}] = $obj;
                 // collection fetch request returns new property like 'bestseller.1'
                 if ($obj->{'collection_guid'}) {
@@ -98,18 +112,19 @@ function openpublishing_replace_tags( $text ) {
         }
         else {
             // if template exists and we got an object data from the server
-            $content = openpublishing_do_template_replacement($templates[$tag], $all_objects[$guid]);
+            $content = openpublishing_do_template_replacement($templates[$tag], $guid, $all_objects);
         }
 
         // add debug info, which is hidden by default
-        $content = '<span class="OP_debug" style="display:none;">[<b>'. $tag .':'. $guid.'</b>]'. $debug_content .'</span>'. $content;
+        $content = '<span class="OP_debug" style="display:none;">[<b>'. $tag .':'. $guid.( $lang?':'. $lang:'').'</b>]'. $debug_content .'</span>'. $content;
 
         //main replace
         $text = str_replace( $replacer, $content, $text);
     }
     //replace common tags with case-insensitive version of str_replace
-    $cdn_host = str_replace('api.', 'cdn.', get_option('openpublishing_api_host'));
-    $text = str_ireplace('{cdn_host}', $cdn_host, $text );
+    $cdn_host_array = explode('.', get_option('openpublishing_api_host'));
+    $cdn_host_array[0] = 'cdn';
+    $text = str_ireplace('{cdn_host}', implode('.', $cdn_host_array), $text );
     $text = str_ireplace('{brand_id}', get_option('openpublishing_brand_id'), $text );
 
     return $text;

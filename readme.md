@@ -13,13 +13,14 @@ Enrich WordPress content with data from the OpenPublishing services
 
 ## How It Works ##
 
-To visualize Open Publishing data on your page please use smart substitution tags in place you want to insert a data, like so `[large_document_view:document.123]`
+To visualize Open Publishing data on your page please use smart substitution tags in place you want to insert a data, like so `[large_document_view:document.123]` or `[sidebar:newest.1:de]`
 
 This substitution tag will be replaced by the data this plugin retrieve from OP server.
 
-Smart substitution notation contain: ``[ "tag_name":"object"."object_id" ]``
+Smart substitution notation contain: ``[ "tag_name":"object"."object_id":"language" ]``
+`language` is an optional parameter, use it to get language specific results. Possible values: `en`, `de`, `fr`, `es`.
 
-You can use: `document` and `bestseller` objects.
+You can use: `document`, `bestseller`, `newest`, `most_read` objects.
 
 ### Preparatory steps ###
 
@@ -29,7 +30,7 @@ To make this work please create templates for each tag_name you would like to us
 
   1. Go to Elementor <a href="/wp-admin/edit.php?post_type=elementor_library">page</a>
   2. Create new template, remember a template id (you can see it in the edit url)
-  3. You can easaly style your template by means of Elementor
+  3. You can easily style your template by means of Elementor
 
 
 * Using WordPress posts:
@@ -39,7 +40,7 @@ To make this work please create templates for each tag_name you would like to us
   4. Use special keywords in your template:`{title} {subtitle} {price} {grin_url} {source_url} {document_id} {cdn_host} {brand_id}`
 
 
-Add newely created templates/posts on this page with corresponding ids.
+Add newly created templates/posts on this page with corresponding ids.
 
 ### Usage: ###
 

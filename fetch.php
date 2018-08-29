@@ -2,21 +2,20 @@
 namespace Openpublishing\Fetch;
 
 
-function openpublishing_fetch_objects($guid, $is_collection = false) {
-    $HOST = 'op-nginx';
+function openpublishing_fetch_objects($object_name, $id, $lang, $is_collection = false) {
+    $HOST = 'https://' . get_option('openpublishing_api_host') . '/resource/v2/';
+    $ASPECT = '[:basic,non_academic.realm_genres.*]';
     $AUTH_TOKEN = get_option('openpublishing_auth_token');
     $COLLECTION_OBJECT = 'document';
+    $guid = $object_name . '.' . $id;
 
-
-    $options = array( 'headers' => array( 'Host' => get_option('openpublishing_api_host') ), 'sslverify' => false);
+    $options = array( 'sslverify' => false);
     if ($is_collection) {
-        $id = explode('.', $guid)[1];
-        $object_name = explode('.', $guid)[0];
         $m_objects_array = array();
         // if we need more that 10 elements, please use pagination: page = <id>
-        $url = 'https://' . $HOST . '/resource/v2/'.$COLLECTION_OBJECT.'[:basic]?sort='. $object_name .'__asc&display=10&auth_token=' . $AUTH_TOKEN;
-        $response = wp_remote_get($url, $options);
+        $url = $HOST.$COLLECTION_OBJECT.$ASPECT.'?sort='.$object_name.'__asc&display=10&auth_token='.$AUTH_TOKEN.($lang?'&language='.$lang:'');
 
+        $response = wp_remote_get($url, $options);
         $status = wp_remote_retrieve_response_code( $response );
         if(is_wp_error($response) && $status) {
             print($response->get_error_message());
@@ -36,7 +35,7 @@ function openpublishing_fetch_objects($guid, $is_collection = false) {
          }
     }
     else {
-        $url = 'https://' . $HOST . '/resource/v2/' . $guid . '[:basic]?auth_token=' . $AUTH_TOKEN;
+        $url = $HOST.$guid.$ASPECT.'?auth_token='.$AUTH_TOKEN.($lang?'&language='.$lang:'');
         $response = wp_remote_get($url, $options);
         $status = wp_remote_retrieve_response_code( $response );
 

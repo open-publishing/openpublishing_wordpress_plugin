@@ -72,13 +72,15 @@ function openpublishing_add_menu() {
     <?php submit_button(); ?>
     </form>
     <a name="faq">
+    <!--Version updated on 29.08.2018-->
     <div class="postbox" style="padding:20px;">
         <h1 style="padding-left:20px;">Openpublishing substitution help</h1></a>
         <div>
-            <p>To visualize Open Publishing data on your page please use smart substitution tags in place you want to insert a data, like so [<b>large_document_view:document.123</b>]</p>
+            <p>To visualize Open Publishing data on your page please use smart substitution tags in place you want to insert a data, like so [<b>large_document_view:document.123</b>] or [<b>sidebar:newest.1:de</b>]</p>
             <p>This substitution tag will be replaced by the data this plugin retrieve from OP server. </p>
-            <p>Smart substitution notation contain: <code>[ "tag_name":"object"."object_id" ]</code></p>
-            <p>You can use: <code>document</code> and <code>bestseller</code> objects.</p>
+            <p>Smart substitution notation contain: <code>[ "tag_name":"object"."object_id":"language" ]</code></p>
+            <p><code>language</code> is an optional parameter, use it to get language specific results. Possible values: <code>en</code>, <code>de</code>, <code>fr</code>, <code>es</code>.</p>
+            <p>You can use: <code>document</code>, <code>bestseller</code>, <code>most_read</code>, <code>newest</code> objects.</p>
             <h3>Preparatory steps:</h5>
             <p>To make this work please create templates for each tag_name you would like to use. You can do this in two different ways.</p>
             <ul>
@@ -87,7 +89,7 @@ function openpublishing_add_menu() {
                     <ol>
                         <li>Go to Elementor <a href="/wp-admin/edit.php?post_type=elementor_library">page</a></li>
                         <li>Create new template, remember a template id (you can see it in the edit url)</li>
-                        <li>You can easaly style your template by means of Elementor</li>
+                        <li>You can easily style your template by means of Elementor</li>
                     </ol>
                 </li>
                 <li>Using Wordpress posts:</li>
@@ -100,7 +102,7 @@ function openpublishing_add_menu() {
                 </li></br>
                 <li>Use special keywords in your template:<code>{title} {subtitle} {price} {grin_url} {source_url} {document_id} {cdn_host} {brand_id}</code></li>
             </ul>
-            <p>Add newely created templates/posts on this page with corresponding ids.</p>
+            <p>Add newly created templates/posts on this page with corresponding ids.</p>
             <h3>Usage:</h3>
             <p>To use substitution please insert into your page this tag with desired 'tag_name' and 'object_id' like:</p>
                 <xmp>
