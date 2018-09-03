@@ -6,46 +6,27 @@ function openpublishing_fetch_objects($object_name, $id, $lang, $is_collection =
     $HOST = 'https://' . get_option('openpublishing_api_host') . '/resource/v2/';
     $ASPECT = '[:basic,non_academic.realm_genres.*]';
     $AUTH_TOKEN = get_option('openpublishing_auth_token');
-    $COLLECTION_OBJECT = 'document';
+    $OBJECT = 'document';
     $guid = $object_name . '.' . $id;
 
     $options = array( 'sslverify' => false);
     if ($is_collection) {
-        $m_objects_array = array();
-        // if we need more that 10 elements, please use pagination: page = <id>
-        $url = $HOST.$COLLECTION_OBJECT.$ASPECT.'?sort='.$object_name.'__asc&display=10&auth_token='.$AUTH_TOKEN.($lang?'&language='.$lang:'');
-
-        $response = wp_remote_get($url, $options);
-        $status = wp_remote_retrieve_response_code( $response );
-        if(is_wp_error($response) && $status) {
-            print($response->get_error_message());
-        }
-
-        if ( 200 == $status || 401 == $status ) {
-            $json = json_decode(wp_remote_retrieve_body($response));
-            $sequence_number = 1;
-            $part_guid = $COLLECTION_OBJECT . '.';
-
-            foreach ($json->{'OBJECTS'} as $obj) {
-                if (strpos($obj->{'GUID'}, $part_guid) === 0 ) {
-                    $obj->{'collection_guid'} = $object_name.'.'. $sequence_number++;
-                }
-            }
-            return $json->{'OBJECTS'};
-         }
+        // retrieves one entity using pagination:
+        $url = $HOST.$OBJECT.$ASPECT.'?sort='.$object_name.'__asc&display=1&page='.$id.'&auth_token='.$AUTH_TOKEN.($lang?'&language='.$lang:'');
     }
     else {
         $url = $HOST.$guid.$ASPECT.'?auth_token='.$AUTH_TOKEN.($lang?'&language='.$lang:'');
-        $response = wp_remote_get($url, $options);
-        $status = wp_remote_retrieve_response_code( $response );
+    }
 
-        if(is_wp_error($response)) {
-            print($response->get_error_message());
-        }
-        if ( 200 == $status || 401 == $status ) {
-            $json = json_decode(wp_remote_retrieve_body($response));
-            return $json->{'OBJECTS'};
-        }
+    $response = wp_remote_get($url, $options);
+    $status = wp_remote_retrieve_response_code($response);
+
+    if(is_wp_error($response)) {
+        print($response->get_error_message());
+    }
+    if ( 200 == $status || 401 == $status ) {
+        $json = json_decode(wp_remote_retrieve_body($response));
+        return $json->{'OBJECTS'};
     }
 }
 

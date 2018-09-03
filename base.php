@@ -99,8 +99,8 @@ function openpublishing_replace_tags( $text ) {
             foreach ((array)Fetch\openpublishing_fetch_objects($object_name, $id, $lang, in_array($object_name, OPENPUBLISHING_COLLECTION_OBJECTS)) as $obj) {
                 $all_objects[$obj->{'GUID'}] = $obj;
                 // collection fetch request returns new property like 'bestseller.1'
-                if ($obj->{'collection_guid'}) {
-                    $all_objects[$obj->{'collection_guid'}] = $obj;
+                if (($obj->{'GUID'} != $guid) && strpos($obj->{'GUID'}, 'document.') === 0) {
+                    $all_objects[$guid] = $obj;
                 }
             }
         }
