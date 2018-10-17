@@ -2,7 +2,7 @@
 /*
 Plugin Name: OpenPublishing
 Description: Enrich content with data from the OpenPublishing service
-Version: 1.4.2
+Version: 1.4.4
 Author: OpenPublishing GmbH
 */
 

@@ -12,7 +12,7 @@ function openpublishing_get_all_tags($tags, $text) {
     define('OPENPUBLISHING_COLLECTION_OBJECTS', array('bestseller', 'newest', 'most_read'));
     define('OPENPUBLISHING_OBJECTS', array_merge(OPENPUBLISHING_COLLECTION_OBJECTS, array('document')));
 
-    $pattern = '/\[(' . implode('|', $tags) . '):(' . implode('|', OPENPUBLISHING_OBJECTS) . ')\.?(\d+)\:?(en|de)?\]/';
+    $pattern = '/\[(' . implode('|', $tags) . '):(' . implode('|', OPENPUBLISHING_OBJECTS) . ')\.?(\d+)\:?(en|de|fr|es)?\]/';
 
     // matched 0: whole, 1: tagname, 2: object, 3: id, 3: language
     preg_match_all($pattern, $text, $matches, PREG_SET_ORDER);
