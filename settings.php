@@ -32,20 +32,21 @@ function openpublishing_add_menu() {
         </tr>
 
         <tr valign="top">
-        <th scope="row">Auth Token*</th>
-        <td>
-            <input type="text" name="openpublishing_auth_token" value="<?php echo esc_attr( get_option('openpublishing_auth_token') ); ?>" />
-            <span class="description">A token which allows access to your realm as world user</span></td>
-        </td>
-        </tr>
-
-        <tr valign="top">
         <th scope="row">API Host*</th>
         <td>
             <input type="text" name="openpublishing_api_host" value="<?php echo esc_attr( get_option('openpublishing_api_host') ); ?>" />
             <span class="description">Your Openpublishing API url</span>
         </td>
         </tr>
+
+        <tr valign="top">
+        <th scope="row">Auth Token</th>
+        <td>
+            <input disabled type="text" name="openpublishing_auth_token" value="<?php echo esc_attr( get_option('openpublishing_auth_token') ); ?>" />
+            <span class="description">A token which allows access to your realm as world user</span></td>
+        </td>
+        </tr>
+
     </table>
     <h3>Open Publishing substitutions:</h3>
     <p class="about-description">Get more information about Open Publishing substitutions <a href="#faq">here</a></p>
@@ -72,7 +73,7 @@ function openpublishing_add_menu() {
     <?php submit_button(); ?>
     </form>
     <a name="faq">
-    <!--Version updated on 19.09.2018-->
+    <!--Version updated on 17.10.2018-->
     <div class="postbox" style="padding:20px;">
         <h1 style="padding-left:20px;">Openpublishing substitution help</h1></a>
         <div>
