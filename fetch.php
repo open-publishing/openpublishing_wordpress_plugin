@@ -29,6 +29,7 @@ function openpublishing_get_with_auth($url) {
     if (!get_option('openpublishing_auth_token')) {
         openpublishing_get_auth_token();
     }
+    // TODO: change sslverify when going live
     $options = array( 'headers' => array( 'Authorization' => 'Bearer ' . get_option('openpublishing_auth_token') ), 'sslverify' => false);
     $response = wp_remote_get($url, $options);
     $status = wp_remote_retrieve_response_code($response);
