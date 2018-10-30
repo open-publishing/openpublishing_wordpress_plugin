@@ -5,51 +5,47 @@ namespace Openpublishing\Fetch;
 $GLOBALS['openpublishing_auth_retry'] = true;
 
 function openpublishing_print_debug($msg) {
-    print('<span class="OP_debug" style="display:none;">' . $msg . '</span><br>');
+    print('<span class="OP_debug" style="display:none;">' . $msg . '</span>');
 }
 
-function openpublishing_get_auth_token() {
+function openpublishing_get_auth_token()  {
+    $new_token = '';
     $HOST = 'https://' . get_option('openpublishing_api_host') . '/auth/auth?';
-    $BRAND_ID = get_option('openpublishing_brand_id');
-    $url = $HOST . 'realm_id=' . $BRAND_ID . '&type=world';
+    $REALM_ID = get_option('openpublishing_realm_id');
+    $url = $HOST . 'realm_id=' . $REALM_ID . '&type=world';
 
     $response = wp_remote_get($url);
     $status = wp_remote_retrieve_response_code($response);
 
-    if (is_wp_error($response) ) {
-        openpublishing_print_debug($response->get_error_message());
-    }
     if (200 == $status) {
         $json = json_decode(wp_remote_retrieve_body($response));
-        update_option(openpublishing_auth_token, $json->{'auth_token'});
+        $new_token = $json->{'auth_token'};
+        update_option(openpublishing_auth_token, $new_token);
     }
+    else {
+        $error_dump = print_r($response, true);
+        openpublishing_print_debug($status .' => ' . $error_dump . '<br>');
+    }
+    return $new_token;
 }
 
-function openpublishing_get_with_auth($url) {
-    if (!get_option('openpublishing_auth_token')) {
-        openpublishing_get_auth_token();
+function openpublishing_get_with_auth($url, $try_again) {
+    $token = get_option('openpublishing_auth_token');
+    if (!$token) {
+        $token = openpublishing_get_auth_token();
     }
-    // TODO: change sslverify when going live
-    $options = array( 'headers' => array( 'Authorization' => 'Bearer ' . get_option('openpublishing_auth_token') ), 'sslverify' => false);
+    $options = array( 'headers' => array( 'Authorization' => 'Bearer ' . $token));
     $response = wp_remote_get($url, $options);
     $status = wp_remote_retrieve_response_code($response);
 
-    if (is_wp_error($response)) {
-        openpublishing_print_debug($response->get_error_message());
-    }
-    elseif (200 == $status) {
-        $GLOBALS['openpublishing_auth_retry'] = true;
-        return $response;
-    }
-    else {
-        $response_message = wp_remote_retrieve_response_message($response);
-        openpublishing_print_debug($status . ' ' . $response_message);
-        if ($GLOBALS['openpublishing_auth_retry']) {
-            update_option(openpublishing_auth_token, '');
-            $GLOBALS['openpublishing_auth_retry'] = false;
-            return openpublishing_get_with_auth($url);
+    if (200 != $status) {
+        $error_dump = print_r($response, true);
+        openpublishing_print_debug($status .' => ' . $error_dump . '<br>');
+        if ($try_again) {
+             $response = openpublishing_get_with_auth($url, false);
         }
     }
+    return $response;
 }
 
 function openpublishing_fetch_objects($object_name, $id, $lang, $is_collection = false) {
@@ -67,7 +63,7 @@ function openpublishing_fetch_objects($object_name, $id, $lang, $is_collection =
     }
 
     openpublishing_print_debug('<b>'.$object_name.':'.$id.($lang?':'.$lang:'').'</b></br>'.$url.'</br>');
-    $response = openpublishing_get_with_auth($url);
+    $response = openpublishing_get_with_auth($url, true);
     $status = wp_remote_retrieve_response_code($response);
 
     if (200 == $status) {
