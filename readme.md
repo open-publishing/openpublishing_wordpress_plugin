@@ -8,7 +8,7 @@ Enrich WordPress content with data from the OpenPublishing services
 1. Install using the WordPress built-in Plugin installer, or clone repository and drop the contents in the `wp-content/plugins/openpublishing` directory of your WordPress installation.
 2. Activate the plugin through the 'Plugins' menu in WordPress.
 3. Go to Open Publishing settings on left menu bar
-4. Proceed with further instructions: set brand id, token and API host.
+4. Proceed with further instructions: set realm id, token and API host.
 
 
 ## How It Works ##
@@ -37,7 +37,7 @@ To make this work please create templates for each tag_name you would like to us
   1. Go to Pages > Add New
   2. Create new post and treat it like a template, remember a template id (you can see it in the edit url)
   3. (Optional) you can assign special category (like op-templates) to each post to distinguish between others
-  4. Use special keywords in your template:`{title} {subtitle} {price} {grin_url} {source_url} {document_id} {cdn_host} {brand_id}`
+  4. Use special keywords in your template:`{title} {subtitle} {price} {grin_url} {source_url} {document_id} {cdn_host} {realm_id}`
 
 
 Add newly created templates/posts on this page with corresponding ids.

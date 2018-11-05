@@ -55,7 +55,7 @@ function openpublishing_get_picture_source($obj) {
     $source = '';
     if ($object_type == 'document') {
         $type = 'normal';
-        $source = OPENPUBLISHING_PROTOCOL.'://{cdn_host}/images/cover/brand/e-book/{brand_id}/{document_id}_'.$type.'.jpg';
+        $source = OPENPUBLISHING_PROTOCOL.'://{cdn_host}/images/cover/brand/e-book/{realm_id}/{document_id}_'.$type.'.jpg';
     }
     return $source;
 }
@@ -87,7 +87,6 @@ function openpublishing_replace_tags( $text ) {
     $all_objects = array();
     $templates = Fetch\openpublishing_fetch_templates();
     $all_tags = openpublishing_get_all_tags(array_keys($templates), $text);
-
 
     foreach ($all_tags as $set) {
         $tag = $set[1]; $object_name = $set[2]; $id = $set[3]; $lang = $set[4];
@@ -125,7 +124,7 @@ function openpublishing_replace_tags( $text ) {
     $cdn_host_array = explode('.', get_option('openpublishing_api_host'));
     $cdn_host_array[0] = 'cdn';
     $text = str_ireplace('{cdn_host}', implode('.', $cdn_host_array), $text );
-    $text = str_ireplace('{brand_id}', get_option('openpublishing_brand_id'), $text );
+    $text = str_ireplace('{realm_id}', get_option('openpublishing_realm_id'), $text );
 
     return $text;
 }

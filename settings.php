@@ -24,10 +24,10 @@ function openpublishing_add_menu() {
     <?php do_settings_sections( 'openpublishing-settings-group' ); ?>
     <table class="form-table">
         <tr valign="top">
-        <th scope="row">Brand ID*</th>
+        <th scope="row">Realm ID*</th>
         <td>
-            <input type="text" name="openpublishing_brand_id" value="<?php echo esc_attr( get_option('openpublishing_brand_id') ); ?>" />
-            <span class="description">The Id of your Openpublishing Brand</span>
+            <input type="text" name="openpublishing_realm_id" value="<?php echo esc_attr( get_option('openpublishing_realm_id') ); ?>" />
+            <span class="description">The Id of your Openpublishing Realm</span>
         </td>
         </tr>
 
@@ -38,7 +38,6 @@ function openpublishing_add_menu() {
             <span class="description">Your Openpublishing API url</span>
         </td>
         </tr>
-
         <tr valign="top">
         <th scope="row">Auth Token</th>
         <td>
@@ -73,7 +72,7 @@ function openpublishing_add_menu() {
     <?php submit_button(); ?>
     </form>
     <a name="faq">
-    <!--Version updated on 17.10.2018-->
+    <!--Version updated on 29.10.2018-->
     <div class="postbox" style="padding:20px;">
         <h1 style="padding-left:20px;">Openpublishing substitution help</h1></a>
         <div>
@@ -101,7 +100,7 @@ function openpublishing_add_menu() {
                         <li>(Optional) you can assign special category (like openpublishing-templates) to each post to distinguish between others</li>
                     </ol>
                 </li></br>
-                <li>Use special keywords in your template:<code>{title} {subtitle} {price} {grin_url} {source_url} {document_id} {cdn_host} {brand_id}</code></li>
+                <li>Use special keywords in your template:<code>{title} {subtitle} {price} {grin_url} {source_url} {document_id} {cdn_host} {realm_id}</code></li>
             </ul>
             <p>Add newly created templates/posts on this page with corresponding ids.</p>
             <h3>Usage:</h3>
@@ -129,9 +128,9 @@ function openpublishing_add_menu() {
 function openpublishing_register_settings() {
 
   //register our settings
-  register_setting( 'openpublishing-settings-group', 'openpublishing_brand_id', array(
+  register_setting( 'openpublishing-settings-group', 'openpublishing_realm_id', array(
     'type'              => 'integer',
-    'description'       => 'The Id of your Openpublishing Brand'
+    'description'       => 'The Id of your Openpublishing Realm'
   ));
   register_setting( 'openpublishing-settings-group', 'openpublishing_auth_token', array(
     'type'              => 'string',
