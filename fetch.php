@@ -23,8 +23,7 @@ function openpublishing_get_auth_token()  {
         update_option(openpublishing_auth_token, $new_token);
     }
     else {
-        $error_dump = print_r($response, true);
-        openpublishing_print_debug($status .' => ' . $error_dump . '<br>');
+        openpublishing_print_debug($status . ' ' . $url . '<br>');
     }
     return $new_token;
 }
@@ -39,8 +38,7 @@ function openpublishing_get_with_auth($url, $try_again) {
     $status = wp_remote_retrieve_response_code($response);
 
     if (200 != $status) {
-        $error_dump = print_r($response, true);
-        openpublishing_print_debug($status .' => ' . $error_dump . '<br>');
+        openpublishing_print_debug($status . ' ' . $url . '<br>');
         if ($try_again) {
              $response = openpublishing_get_with_auth($url, false);
         }
