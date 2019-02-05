@@ -95,12 +95,17 @@ function openpublishing_replace_tags( $text ) {
         $content = ''; $debug_content = '';
         if (!array_key_exists($guid, $all_objects)) {
             // (array) thing give us an empty array if function return is empty
-            foreach ((array)Fetch\openpublishing_fetch_objects($object_name, $id, $lang, in_array($object_name, OPENPUBLISHING_COLLECTION_OBJECTS)) as $obj) {
-                $all_objects[$obj->{'GUID'}] = $obj;
-                // collection fetch request returns new property like 'bestseller.1'
-                if (($obj->{'GUID'} != $guid) && strpos($obj->{'GUID'}, 'document.') === 0) {
-                    $all_objects[$guid] = $obj;
-                }
+            $res = Fetch\openpublishing_fetch_objects($object_name, $id, $lang, in_array($object_name, OPENPUBLISHING_COLLECTION_OBJECTS));
+            $objs = (array)($res->{'OBJECTS'});
+            $iter = 1;
+
+            foreach ($objs as $obj) {
+                    $all_objects[$obj->{'GUID'}] = $obj;
+            }
+
+            foreach ((array)$res->{'RESULTS'} as $obj) {
+                    $all_objects[$object_name.'.'.$iter++] = $objs[$obj];
+
             }
         }
         if (!array_key_exists($guid, $all_objects)) {

@@ -53,8 +53,7 @@ function openpublishing_fetch_objects($object_name, $id, $lang, $is_collection =
     $guid = $object_name . '.' . $id;
 
     if ($is_collection) {
-        // retrieves one entity using pagination:
-        $url = $HOST.$OBJECT.$ASPECT.'?sort='.$object_name.'__asc&display=1&page='.$id.($lang?'&language='.$lang:'');
+        $url = $HOST.$OBJECT.$ASPECT.'?sort='.$object_name.'__asc&display=10'.($lang?'&language='.$lang:'');
     }
     else {
         $url = $HOST.$guid.$ASPECT.($lang?'?language='.$lang:'');
@@ -66,7 +65,7 @@ function openpublishing_fetch_objects($object_name, $id, $lang, $is_collection =
 
     if (200 == $status) {
         $json = json_decode(wp_remote_retrieve_body($response));
-        return $json->{'OBJECTS'};
+        return $json;
     }
 }
 
