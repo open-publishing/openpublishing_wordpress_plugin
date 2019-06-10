@@ -20,7 +20,7 @@ function openpublishing_get_auth_token()  {
     if (200 == $status) {
         $json = json_decode(wp_remote_retrieve_body($response));
         $new_token = $json->{'auth_token'};
-        update_option(openpublishing_auth_token, $new_token);
+        update_option('openpublishing_auth_token', $new_token);
     }
     else {
         openpublishing_print_debug($status . ' ' . $url . '<br>');
@@ -41,6 +41,7 @@ function openpublishing_get_with_auth($url, $try_again) {
         openpublishing_print_debug($status . ' ' . $url . '<br>');
         if ($try_again) {
              $response = openpublishing_get_with_auth($url, false);
+             update_option('openpublishing_auth_token', '');
         }
     }
     return $response;
@@ -53,8 +54,7 @@ function openpublishing_fetch_objects($object_name, $id, $lang, $is_collection =
     $guid = $object_name . '.' . $id;
 
     if ($is_collection) {
-        // retrieves one entity using pagination:
-        $url = $HOST.$OBJECT.$ASPECT.'?sort='.$object_name.'__asc&display=1&page='.$id.($lang?'&language='.$lang:'');
+        $url = $HOST.$OBJECT.$ASPECT.'?sort='.$object_name.'__asc&cache=yes&display=10'.($lang?'&language='.$lang:'');
     }
     else {
         $url = $HOST.$guid.$ASPECT.($lang?'?language='.$lang:'');
@@ -66,7 +66,7 @@ function openpublishing_fetch_objects($object_name, $id, $lang, $is_collection =
 
     if (200 == $status) {
         $json = json_decode(wp_remote_retrieve_body($response));
-        return $json->{'OBJECTS'};
+        return $json;
     }
 }
 

@@ -72,7 +72,7 @@ function openpublishing_add_menu() {
     <?php submit_button(); ?>
     </form>
     <a name="faq">
-    <!--Version updated on 29.10.2018-->
+    <!--Version updated on 10.06.2019-->
     <div class="postbox" style="padding:20px;">
         <h1 style="padding-left:20px;">Openpublishing substitution help</h1></a>
         <div>
