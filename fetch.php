@@ -5,25 +5,27 @@ namespace Openpublishing\Fetch;
 $GLOBALS['openpublishing_auth_retry'] = true;
 
 function openpublishing_print_debug($msg) {
-    print('<span class="OP_debug" style="display:none;">' . $msg . '</span>');
+    print('<span class="OP_debug" style="display:none;">' . $msg . '<br></span>');
 }
 
-function openpublishing_get_auth_token()  {
+function openpublishing_get_auth_token() {
     $new_token = '';
     $HOST = 'https://' . get_option('openpublishing_api_host') . '/auth/auth?';
     $REALM_ID = get_option('openpublishing_realm_id');
     $url = $HOST . 'realm_id=' . $REALM_ID . '&type=world';
 
     $response = wp_remote_get($url);
-    $status = wp_remote_retrieve_response_code($response);
-
-    if (200 == $status) {
-        $json = json_decode(wp_remote_retrieve_body($response));
-        $new_token = $json->{'auth_token'};
-        update_option('openpublishing_auth_token', $new_token);
-    }
-    else {
-        openpublishing_print_debug($status . ' ' . $url . '<br>');
+    if ( is_wp_error( $response ) ) {
+        error_log("[ERROR] " . $response->get_error_message() . ' ' . $url);
+    } else {
+            $status = wp_remote_retrieve_response_code( $response );
+            if ( $status === 200 ) {
+                    $json = json_decode(wp_remote_retrieve_body($response));
+                    $new_token = $json->{'auth_token'};
+                    update_option('openpublishing_auth_token', $new_token);
+                } else {
+                    error_log("[ERROR]" . $url .' - '. $status);
+            }
     }
     return $new_token;
 }
@@ -35,10 +37,10 @@ function openpublishing_get_with_auth($url, $try_again) {
     }
     $options = array( 'headers' => array( 'Authorization' => 'Bearer ' . $token));
     $response = wp_remote_get($url, $options);
-    $status = wp_remote_retrieve_response_code($response);
 
-    if (200 != $status) {
-        openpublishing_print_debug($status . ' ' . $url . '<br>');
+    if ( is_wp_error( $response ) ) {
+        error_log("[ERROR] failed to get " . $url);
+
         if ($try_again) {
              $response = openpublishing_get_with_auth($url, false);
              update_option('openpublishing_auth_token', '');
@@ -60,13 +62,18 @@ function openpublishing_fetch_objects($object_name, $id, $lang, $is_collection =
         $url = $HOST.$guid.$ASPECT.($lang?'?language='.$lang:'');
     }
 
-    openpublishing_print_debug('<b>'.$object_name.':'.$id.($lang?':'.$lang:'').'</b></br>'.$url.'</br>');
+    openpublishing_print_debug('<b>'.$object_name.':'.$id.($lang?':'.$lang:'').'</b></br>'.$url);
     $response = openpublishing_get_with_auth($url, true);
-    $status = wp_remote_retrieve_response_code($response);
+    if ( is_wp_error( $response ) ) {
+        error_log("[ERROR] " . $response->get_error_message() . ' ' . $url);
+        openpublishing_print_debug("[ERROR] " . $response->get_error_message() . ' ' . $url);
+    } else {
+            $status = wp_remote_retrieve_response_code($response);
 
-    if (200 == $status) {
-        $json = json_decode(wp_remote_retrieve_body($response));
-        return $json;
+            if (200 == $status) {
+                $json = json_decode(wp_remote_retrieve_body($response));
+                return $json;
+            }
     }
 }
 
