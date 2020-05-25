@@ -1,4 +1,5 @@
 <?php
+<?php
 namespace Openpublishing;
 require_once 'fetch.php';
 
@@ -21,8 +22,9 @@ function openpublishing_get_all_tags($tags, $text) {
 
 function openpublishing_get_price($obj) {
     $price = '';
-    if (!$obj->{'current_price'}->{'free'}) {
-        $price = $obj->{'current_price'}->{'price'}->{'formatted'};
+
+    if (is_object($obj->{'current_prices'}->{'ebook'}->{'price'}) && !$obj->{'current_prices'}->{'ebook'}->{'free'}) {
+        $price = $obj->{'current_prices'}->{'ebook'}->{'price'}->{'formatted'};
     }
     return $price;
 }
@@ -30,7 +32,7 @@ function openpublishing_get_price($obj) {
 function openpublishing_get_subject($obj, $allObjects) {
     $subject = '';
 
-    if ($obj->{'is_academic'}) {
+    if (isset($obj->{'is_academic'})) {
         $catalogGuid = $obj->{'academic'}->{'catalog'};
         if ($catalogGuid) {
             $catalog = $allObjects[$catalogGuid]->{'name'};
@@ -38,7 +40,7 @@ function openpublishing_get_subject($obj, $allObjects) {
             $subject = explode('-', $catalog)[0];
         }
     }
-    else {
+    elseif (isset($obj->{'non_academic'})) {
         $genreGuid = $obj->{'non_academic'}->{'realm_genres'};
         if ($genreGuid[0]) {
             // lets take first realm_genre from a list
@@ -49,13 +51,12 @@ function openpublishing_get_subject($obj, $allObjects) {
 }
 
 function openpublishing_get_picture_source($obj) {
-    define('OPENPUBLISHING_PROTOCOL', 'https');
     $object_type = explode('.', $obj->{'GUID'})[0];
 
     $source = '';
     if ($object_type == 'document') {
         $type = 'normal';
-        $source = OPENPUBLISHING_PROTOCOL.'://{cdn_host}/images/cover/brand/e-book/{realm_id}/{document_id}_'.$type.'.jpg';
+        $source = 'https://{cdn_host}/images/cover/brand/e-book/{realm_id}/{document_id}_'.$type.'.jpg';
     }
     return $source;
 }
@@ -69,7 +70,7 @@ function openpublishing_do_template_replacement($tmpl, $guid, $all_objects) {
     $content = str_replace('{subtitle}', $obj->{'subtitle'}, $content );
     $content = str_replace('{price}', openpublishing_get_price($obj), $content );
     $content = str_replace('{subject}', openpublishing_get_subject($obj, $all_objects), $content );
-    $content = str_replace('{grin_url}', $obj->{'grin_url'}, $content );
+    $content = str_replace('{grin_url}', isset($obj->{'grin_url'})?$obj->{'grin_url'}:'', $content );
     $content = str_replace('{source_url}', openpublishing_get_picture_source($obj), $content );
     $content = str_replace('{document_id}', $id, $content );
 
