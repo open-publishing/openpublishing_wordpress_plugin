@@ -1,5 +1,4 @@
 <?php
-<?php
 namespace Openpublishing;
 require_once 'fetch.php';
 
@@ -23,9 +22,16 @@ function openpublishing_get_all_tags($tags, $text) {
 function openpublishing_get_price($obj) {
     $price = '';
 
-    if (is_object($obj->{'current_prices'}->{'ebook'}->{'price'}) && !$obj->{'current_prices'}->{'ebook'}->{'free'}) {
-        $price = $obj->{'current_prices'}->{'ebook'}->{'price'}->{'formatted'};
+    if (isset($obj->{'current_prices'}->{'ebook'})) {
+            if (is_object($obj->{'current_prices'}->{'ebook'}->{'price'}) && !$obj->{'current_prices'}->{'ebook'}->{'free'}) {
+                $price = $obj->{'current_prices'}->{'ebook'}->{'price'}->{'formatted'};
+            }
+    } elseif (isset($obj->{'current_prices'}->{'pod'})) {
+            if (is_object($obj->{'current_prices'}->{'pod'}->{'price'}) && !$obj->{'current_prices'}->{'pod'}->{'free'}) {
+                $price = $obj->{'current_prices'}->{'pod'}->{'price'}->{'formatted'};
+            }
     }
+
     return $price;
 }
 
@@ -33,11 +39,13 @@ function openpublishing_get_subject($obj, $allObjects) {
     $subject = '';
 
     if (isset($obj->{'is_academic'})) {
-        $catalogGuid = $obj->{'academic'}->{'catalog'};
-        if ($catalogGuid) {
-            $catalog = $allObjects[$catalogGuid]->{'name'};
-            // truncate at first hyphen "-"
-            $subject = explode('-', $catalog)[0];
+            if (is_object($obj->{'academic'})) {
+                $catalogGuid = $obj->{'academic'}->{'catalog'};
+                if ($catalogGuid) {
+                    $catalog = $allObjects[$catalogGuid]->{'name'};
+                    // truncate at first hyphen "-"
+                    $subject = explode('-', $catalog)[0];
+                }
         }
     }
     elseif (isset($obj->{'non_academic'})) {
