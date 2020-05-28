@@ -24,26 +24,40 @@ function openpublishing_add_menu() {
     <?php do_settings_sections( 'openpublishing-settings-group' ); ?>
     <table class="form-table">
         <tr valign="top">
-        <th scope="row">Realm ID*</th>
-        <td>
-            <input type="text" name="openpublishing_realm_id" value="<?php echo esc_attr( get_option('openpublishing_realm_id') ); ?>" />
-            <span class="description">The Id of your Openpublishing Realm</span>
-        </td>
+            <th scope="row">Realm ID*</th>
+            <td>
+                <input type="text" name="openpublishing_realm_id" value="<?php echo esc_attr( get_option('openpublishing_realm_id') ); ?>" />
+                <span class="description">The Id of your Openpublishing Realm</span>
+            </td>
         </tr>
 
         <tr valign="top">
-        <th scope="row">API Host*</th>
-        <td>
-            <input type="text" name="openpublishing_api_host" value="<?php echo esc_attr( get_option('openpublishing_api_host') ); ?>" />
-            <span class="description">Your Openpublishing API url</span>
-        </td>
+            <th scope="row">Brand Name*</th>
+            <td>
+                <input type="text" name="openpublishing_brand_name" value="<?php echo esc_attr( get_option('openpublishing_brand_name') ); ?>" />
+                <span class="description">The name of your Openpublishing Brand</span>
+            </td>
         </tr>
         <tr valign="top">
-        <th scope="row">Auth Token</th>
-        <td>
-            <input disabled type="text" name="openpublishing_auth_token" value="<?php echo esc_attr( get_option('openpublishing_auth_token') ); ?>" />
-            <span class="description">A token which allows access to your realm as world user</span></td>
-        </td>
+            <th scope="row">API Host*</th>
+            <td>
+                <input type="text" name="openpublishing_api_host" value="<?php echo esc_attr( get_option('openpublishing_api_host') ); ?>" />
+                <span class="description">Your Openpublishing API url</span>
+            </td>
+        </tr>
+        <tr valign="top">
+            <th scope="row">Document count</th>
+            <td>
+                <input type="text" name="openpublishing_document_count" value="<?php echo esc_attr( get_option('openpublishing_document_count') ); ?>" />
+                <span class="description">Brand statistics: <a href="#faq_count">document count</a></span>
+            </td>
+        </tr>
+        <tr valign="top">
+            <th scope="row">Auth Token</th>
+            <td>
+                <input disabled type="text" name="openpublishing_auth_token" value="<?php echo esc_attr( get_option('openpublishing_auth_token') ); ?>" />
+                <span class="description">A token which allows access to your realm as world user</span></td>
+            </td>
         </tr>
 
     </table>
@@ -119,6 +133,18 @@ function openpublishing_add_menu() {
         </script></xmp>
             <p>This will allow you to see some more information about substitution.</p>
         </div>
+        <a name="faq_count">
+        <h1 style="padding-left:20px; padding-top:20px">Openpublishing document count help</h1></a>
+        <div>
+            <p>There is a scheduled job which is retrieving the brand statistics from OP server and saves the value to <i>Document count</i> on a daily basis.</p>
+            <p>To print document count use 'openpublishing_document_count' option.</p>
+            <h3>Usage:</h3>
+            <xmp><?php echo "        <h1><?php echo 'Total count of published documents: ' . get_option('openpublishing_document_count'); ?></h1>"; ?></xmp>
+            <p>Next example shows how to create placeholder text for header search input with text <i>"219.240 eBooks &amp; Bücher"</i>:</p>
+            <xmp><?php echo '        <input data-widget="SearchTagAutocomplete" type="text" class="search-input ac_input" name="searchstring" value="" autocomplete="off"
+        placeholder="<?php echo get_option("openpublishing_document_count") . " "; pll_e("Text Suchleiste"); ?>" />'; ?>
+            </xmp>
+        </div>
     </div>
 <?php
 }
@@ -132,6 +158,10 @@ function openpublishing_register_settings() {
     'type'              => 'integer',
     'description'       => 'The Id of your Openpublishing Realm'
   ));
+  register_setting( 'openpublishing-settings-group', 'openpublishing_brand_name', array(
+    'type'              => 'integer',
+    'description'       => 'The Name of your Openpublishing Brand'
+  ));
   register_setting( 'openpublishing-settings-group', 'openpublishing_auth_token', array(
     'type'              => 'string',
     'description'       => 'An auth token which allows access to your realm as world user'
@@ -139,6 +169,10 @@ function openpublishing_register_settings() {
   register_setting( 'openpublishing-settings-group', 'openpublishing_api_host', array(
     'type'              => 'string',
     'description'       => 'Your Openpublishing api url'
+  ));
+  register_setting( 'openpublishing-settings-group', 'openpublishing_document_count', array(
+    'type'              => 'string',
+    'description'       => 'Brand statistics: document count'
   ));
   for ($element = 1; $element <= 10; $element++) {
       register_setting( 'openpublishing-settings-group', 'openpublishing_template_id_' . $element, array(
