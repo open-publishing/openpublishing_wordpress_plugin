@@ -1,14 +1,14 @@
 <?php
 namespace Openpublishing;
 require_once plugin_dir_path( __FILE__ ) . 'fetch.php';
-require_once plugin_dir_path( __FILE__ ) . 'cache.php';
+//require_once plugin_dir_path( __FILE__ ) . 'cache.php';
 
 if (is_admin() == true)
 {
-  require_once plugin_dir_path( __FILE__ ) . 'settings.php';
+  require_once plugin_dir_path( dirname(__FILE__), 1 ) . 'admin/settings.php';
 }
 
-function openpublishing_get_all_legacy_tags($tags, $text) {
+function openpublishing_legacy_get_all_tags($tags, $text) {
     $pattern = '/\[(' . implode('|', $tags) . '):(' . implode('|', OPENPUBLISHING_OBJECTS) . ')\.?(\d+)\:?(en|de|fr|es)?\]/';
 
     // matched 0: whole, 1: tagname, 2: object, 3: id, 4: language (optional)
@@ -89,10 +89,31 @@ function openpublishing_do_template_replacement($tmpl, $guid, $all_objects) {
     return $content;
 }
 
+/**
+ * @param string $text
+ * @return string
+ */
 function openpublishing_replace_tags( $text ) {
+    if (get_option('openpublishing_legacy_substitution', true)) {
+        $text = openpublishing_legacy_replace_tags($text);
+    }
+    //replace common tags with case-insensitive version of str_replace
+    $cdn_host_array = explode('.', get_option('openpublishing_api_host'));
+    $cdn_host_array[0] = 'cdn';
+    $text = str_ireplace('{cdn_host}', implode('.', $cdn_host_array), $text );
+    $text = str_ireplace('{realm_id}', get_option('openpublishing_realm_id'), $text );
+
+    return $text;
+}
+
+/**
+ * @param string $text
+ * @return string|string[]
+ */
+function openpublishing_legacy_replace_tags( $text ) {
     $all_objects = [];
     $templates = Fetch\openpublishing_fetch_templates();
-    $all_tags = openpublishing_get_all_legacy_tags(array_keys($templates), $text);
+    $all_tags = openpublishing_legacy_get_all_tags(array_keys($templates), $text);
 
     foreach ($all_tags as $set) {
         $tag = $set[1];
@@ -103,6 +124,8 @@ function openpublishing_replace_tags( $text ) {
         $replacer = '[' . $tag .':'. $guid . $lang . ']';
         $content = '';
         $debug_content = '';
+
+        // was the content already fetched by the api?
         if (!array_key_exists($guid, $all_objects)) {
             // (array) thing give us an empty array if function return is empty
             $res = Fetch\openpublishing_fetch_objects($object_name, $id, $lang, in_array($object_name, OPENPUBLISHING_COLLECTION_OBJECTS));
@@ -110,14 +133,16 @@ function openpublishing_replace_tags( $text ) {
             $iter = 1;
 
             foreach ($objs as $obj) {
-                    $all_objects[$obj->{'GUID'}] = $obj;
+                $all_objects[$obj->{'GUID'}] = $obj;
             }
 
             foreach ((array)$res->{'RESULTS'} as $obj) {
-                    $all_objects[$object_name.'.'.$iter++] = $objs[$obj];
+                $all_objects[$object_name . '.' . $iter++] = $objs[$obj];
 
             }
         }
+
+        // do the replacement
         if (!array_key_exists($guid, $all_objects)) {
             $debug_content = '<span style="color:orange;"> Object was not found</span>';
         }
@@ -130,16 +155,13 @@ function openpublishing_replace_tags( $text ) {
         }
 
         // add debug info, which is hidden by default
-        $content = '<span class="OP_debug" style="display:none;">[<b>'. $tag .':'. $guid.( $lang?':'. $lang:'').'</b>]'. $debug_content .'</span>'. $content;
+        if ( WP_DEBUG || strstr($text, 'document.getElementsByClassName("OP_debug")') ) {
+            $content = '<span class="OP_debug" style="display: none">[<b>' . $tag . ':' . $guid . $lang . '</b>]' . $debug_content . '</span>' . $content;
+        }
 
         //main replace
         $text = str_replace( $replacer, $content, $text);
     }
-    //replace common tags with case-insensitive version of str_replace
-    $cdn_host_array = explode('.', get_option('openpublishing_api_host'));
-    $cdn_host_array[0] = 'cdn';
-    $text = str_ireplace('{cdn_host}', implode('.', $cdn_host_array), $text );
-    $text = str_ireplace('{realm_id}', get_option('openpublishing_realm_id'), $text );
 
     return $text;
 }
