@@ -19,10 +19,11 @@ require_once plugin_dir_path( __FILE__ ) . 'includes/document_count.php';
 
 define('OPENPUBLISHING_COLLECTION_OBJECTS', array('bestseller', 'newest', 'most_read'));
 define('OPENPUBLISHING_OBJECTS', array_merge(OPENPUBLISHING_COLLECTION_OBJECTS, array('document')));
+define('OPENPUBLISHING_DISPLAY_MAX', 10);
 
 if (get_option('openpublishing_realm_id') && get_option('openpublishing_api_host')) {
     add_filter( 'the_content', 'OpenPublishing\openpublishing_replace_tags' );
-   // add_shortcode( 'openpublishing', 'Openpublishing\Cache\openpublishing_add_shortcodes_to_cache', 1 );
+    //add_shortcode( 'openpublishing', 'Openpublishing\Cache\openpublishing_add_shortcodes_to_cache', 1 );
 }
 else {
     error_log("[ERROR] " . 'Please configure Openpublishing plugin with API Host and Realm ID and Brand name');
