@@ -10,8 +10,8 @@ if (is_admin() == true)
 
 function openpublishing_get_all_legacy_tags($tags, $text) {
     $pattern = '/\[(' . implode('|', $tags) . '):(' . implode('|', OPENPUBLISHING_OBJECTS) . ')\.?(\d+)\:?(en|de|fr|es)?\]/';
-    //echo('<h1>getTags</h1>');
-    // matched 0: whole, 1: tagname, 2: object, 3: id, 3: language
+
+    // matched 0: whole, 1: tagname, 2: object, 3: id, 4: language (optional)
     preg_match_all($pattern, $text, $matches, PREG_SET_ORDER);
     return $matches;
 }
@@ -97,7 +97,7 @@ function openpublishing_replace_tags( $text ) {
     foreach ($all_tags as $set) {
         $tag = $set[1];
         $object_name = $set[2];
-        $id = isset($set[3]) ? '' : '.' . $set[3];
+        $id = isset($set[3]) ? '.' . $set[3] : '';
         $lang = empty($set[4]) ? '' : ':' . $set[4];
         $guid = $object_name . $id;
         $replacer = '[' . $tag .':'. $guid . $lang . ']';
