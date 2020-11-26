@@ -1,17 +1,14 @@
 <?php
 namespace Openpublishing;
 require_once 'fetch.php';
-
+require_once 'cache.php';
 
 if (is_admin() == true)
 {
   require_once 'settings.php';
 }
 
-function openpublishing_get_all_tags($tags, $text) {
-    define('OPENPUBLISHING_COLLECTION_OBJECTS', array('bestseller', 'newest', 'most_read'));
-    define('OPENPUBLISHING_OBJECTS', array_merge(OPENPUBLISHING_COLLECTION_OBJECTS, array('document')));
-
+function openpublishing_get_all_legacy_tags($tags, $text) {
     $pattern = '/\[(' . implode('|', $tags) . '):(' . implode('|', OPENPUBLISHING_OBJECTS) . ')\.?(\d+)\:?(en|de|fr|es)?\]/';
 
     // matched 0: whole, 1: tagname, 2: object, 3: id, 3: language
@@ -78,7 +75,7 @@ function openpublishing_do_template_replacement($tmpl, $guid, $all_objects) {
     $content = str_replace('{subtitle}', $obj->{'subtitle'}, $content );
     $content = str_replace('{price}', openpublishing_get_price($obj), $content );
     $content = str_replace('{subject}', openpublishing_get_subject($obj, $all_objects), $content );
-    $content = str_replace('{grin_url}', isset($obj->{'grin_url'})?$obj->{'grin_url'}:'', $content );
+    $content = str_replace('{grin_url}', $obj->{'grin_url'} ?? '', $content );
     $content = str_replace('{source_url}', openpublishing_get_picture_source($obj), $content );
     $content = str_replace('{document_id}', $id, $content );
 
@@ -93,15 +90,19 @@ function openpublishing_do_template_replacement($tmpl, $guid, $all_objects) {
 }
 
 function openpublishing_replace_tags( $text ) {
-    $all_objects = array();
+    $all_objects = [];
     $templates = Fetch\openpublishing_fetch_templates();
-    $all_tags = openpublishing_get_all_tags(array_keys($templates), $text);
+    $all_tags = openpublishing_get_all_legacy_tags(array_keys($templates), $text);
 
     foreach ($all_tags as $set) {
-        $tag = $set[1]; $object_name = $set[2]; $id = $set[3]; $lang = $set[4];
-        $guid = $object_name . '.' . $id;
-        $replacer = '[' . $tag .':'. $guid . ( $lang?':'. $lang:'') . ']';
-        $content = ''; $debug_content = '';
+        $tag = $set[1];
+        $object_name = $set[2];
+        $id = isset($set[3]) ? '' : '.' . $set[3];
+        $lang = empty($set[4]) ? '' : ':' . $set[4];
+        $guid = $object_name . $id;
+        $replacer = '[' . $tag .':'. $guid . $lang . ']';
+        $content = '';
+        $debug_content = '';
         if (!array_key_exists($guid, $all_objects)) {
             // (array) thing give us an empty array if function return is empty
             $res = Fetch\openpublishing_fetch_objects($object_name, $id, $lang, in_array($object_name, OPENPUBLISHING_COLLECTION_OBJECTS));
@@ -142,4 +143,3 @@ function openpublishing_replace_tags( $text ) {
 
     return $text;
 }
-?>

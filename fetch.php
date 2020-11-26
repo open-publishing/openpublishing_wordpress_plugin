@@ -50,6 +50,10 @@ function openpublishing_get_with_auth($url, $try_again) {
 }
 
 function openpublishing_fetch_objects($object_name, $id, $lang, $is_collection = false) {
+//    var_dump($object_name);
+//    var_dump($id);
+//    var_dump($lang);
+//    var_dump($is_collection);
     $HOST = 'https://' . get_option('openpublishing_api_host') . '/resource/v2/';
     $ASPECT = '[:basic,non_academic.realm_genres.*]';
     $OBJECT = 'document';
@@ -78,7 +82,7 @@ function openpublishing_fetch_objects($object_name, $id, $lang, $is_collection =
 }
 
 function openpublishing_fetch_templates() {
-    $tmpls = array();
+    $templates = [];
     for ($element = 1; $element <= 10; $element++) {
         $tag = 'openpublishing_template_tag_' . $element;
         $template = 'openpublishing_template_id_' . $element;
@@ -98,9 +102,8 @@ function openpublishing_fetch_templates() {
         }
 
         if (!empty($tmpl_content)) {
-            $tmpls[$name] = $tmpl_content;
+            $templates[$name] = $tmpl_content;
         }
     }
-    return $tmpls;
+    return $templates;
 }
-?>

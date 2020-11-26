@@ -2,7 +2,6 @@
 
 namespace Openpublishing\DocumentCount;
 
-
 function update() {
     $HOST = 'https://' . get_option('openpublishing_api_host');
     $url = $HOST . '/rpc/v2/brand_statistics?method=document_count&brand_name=' . get_option('openpublishing_brand_name');
@@ -26,4 +25,3 @@ function update() {
 
     update_option('openpublishing_document_count', $count_formatted);
 }
-?>
