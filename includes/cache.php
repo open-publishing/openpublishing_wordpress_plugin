@@ -14,10 +14,12 @@ $openpublishing_cache = [
         'sort', 'sort__asc', 'sort__desc'
     ]
 ];
+openpublishing_complete_relevant_attributes($openpublishing_cache);
 
-function openpublishing_complete_relevant_attributes() {
-    global $openpublishing_cache;
-
+/**
+ * @param array $openpublishing_cache
+ */
+function openpublishing_complete_relevant_attributes(&$openpublishing_cache) {
     // Add all combinations of suffixes to the attributes
     foreach ($openpublishing_cache['request_relevant_base_attributes'] as $attribute) {
         $openpublishing_cache['request_relevant_attributes'] = array_merge(
@@ -28,7 +30,6 @@ function openpublishing_complete_relevant_attributes() {
         );
     }
 }
-openpublishing_complete_relevant_attributes();
 
 /**
  * @param array $attributes Attributes of the shortcode
@@ -39,11 +40,12 @@ openpublishing_complete_relevant_attributes();
 function openpublishing_add_shortcodes_to_cache ($attributes, $content, $tag) {
     global $openpublishing_cache;
     ksort($attributes);
-    $tempTag = '[[opTemp:' . openpublishing_get_hash_from_all_attributes($attributes) . ']]';
+    $tempTag = '[' . $tag . ' hash="' . openpublishing_get_hash_from_all_attributes($attributes) . '"]';
     $openpublishing_cache['tags'][$tempTag] = [
         'key' => openpublishing_get_hash_from_relevant_attributes($attributes),
         'display' => $attributes['display'] ?? 1,
     ];
+    //echo('<h1>Tag'.count($openpublishing_cache['tags']).'</h1>');
     return $tempTag;
 }
 

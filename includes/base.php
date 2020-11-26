@@ -1,16 +1,16 @@
 <?php
 namespace Openpublishing;
-require_once 'fetch.php';
-require_once 'cache.php';
+require_once plugin_dir_path( __FILE__ ) . 'fetch.php';
+require_once plugin_dir_path( __FILE__ ) . 'cache.php';
 
 if (is_admin() == true)
 {
-  require_once 'settings.php';
+  require_once plugin_dir_path( __FILE__ ) . 'settings.php';
 }
 
 function openpublishing_get_all_legacy_tags($tags, $text) {
     $pattern = '/\[(' . implode('|', $tags) . '):(' . implode('|', OPENPUBLISHING_OBJECTS) . ')\.?(\d+)\:?(en|de|fr|es)?\]/';
-
+    //echo('<h1>getTags</h1>');
     // matched 0: whole, 1: tagname, 2: object, 3: id, 3: language
     preg_match_all($pattern, $text, $matches, PREG_SET_ORDER);
     return $matches;
