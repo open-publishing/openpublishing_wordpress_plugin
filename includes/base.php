@@ -75,13 +75,17 @@ function openpublishing_get_shortcode_data( $content ) {
         }
 
         $sort = $attributes['sort'] ?? null;
-        unset($attributes['display'], $attributes['template'], $attributes['sort']);
+        $order = $attributes['order'] ?? 'asc';
+        $get_position = $attributes['get-position'] ?? null;
+        unset($attributes['display'], $attributes['template'], $attributes['sort'], $attributes['get-position']);
 
         $data[] = [
             'tag'  => $match[2],
             'template' => $template,
+            'get-position' => $get_position,
             'limit' => $limit,
             'sort' => $sort,
+            'order' => $order,
             'filters' => $attributes,
         ];
     }
@@ -97,7 +101,7 @@ function openpublishing_get_shortcode_data( $content ) {
  */
 function openpublishing_legacy_replace_tags( $content ) {
     $all_objects = [];
-    $templates = Fetch\openpublishing_fetch_templates();
+    $templates = Render\openpublishing_get_templates();
     $all_tags = openpublishing_legacy_get_all_tags(array_keys($templates), $content);
 
     foreach ($all_tags as $set) {
@@ -113,17 +117,18 @@ function openpublishing_legacy_replace_tags( $content ) {
         // was the content already fetched by the api?
         if (!array_key_exists($guid, $all_objects)) {
             // (array) thing give us an empty array if function return is empty
-            $res = Fetch\openpublishing_fetch_objects($object_name, $id, $lang, in_array($object_name, OPENPUBLISHING_COLLECTION_OBJECTS));
-            $objs = (array)($res->{'OBJECTS'});
+            $is_collection = in_array($object_name, OPENPUBLISHING_COLLECTION_OBJECTS);
+            $url = Fetch\openpublishing_legacy_generate_api_url($object_name, $id, $lang, $is_collection);
+            $res = Fetch\openpublishing_fetch_objects($url);
+            $objs = $res->OBJECTS;
             $iter = 1;
 
             foreach ($objs as $obj) {
-                $all_objects[$obj->{'GUID'}] = $obj;
+                $all_objects[$obj->GUID] = $obj;
             }
 
-            foreach ((array)$res->{'RESULTS'} as $obj) {
-                $all_objects[$object_name . '.' . $iter++] = $objs[$obj];
-
+            foreach ($res->RESULTS as $obj) {
+                $all_objects[$object_name . '.' . $iter++] = $obj;
             }
         }
 

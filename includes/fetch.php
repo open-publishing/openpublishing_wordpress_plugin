@@ -49,7 +49,32 @@ function openpublishing_get_with_auth($url, $try_again) {
     return $response;
 }
 
-function openpublishing_fetch_objects($object_name, $id, $lang, $is_collection = false) {
+/**
+ * @param string $url
+ * @return array
+ */
+function openpublishing_fetch_objects(string $url) {
+    $response = openpublishing_get_with_auth($url, true);
+    if ( is_wp_error( $response ) ) {
+        error_log("[ERROR] " . $response->get_error_message() . ' ' . $url);
+        openpublishing_print_debug("[ERROR] " . $response->get_error_message() . ' ' . $url);
+    } else {
+        $status = wp_remote_retrieve_response_code($response);
+
+        if ( 200 == $status ) {
+            return json_decode(wp_remote_retrieve_body($response));
+        }
+    }
+}
+
+/**
+ * @param string $object_name
+ * @param int $id
+ * @param string $lang
+ * @param bool $is_collection
+ * @return string
+ */
+function openpublishing_legacy_generate_api_url($object_name, $id, $lang, $is_collection = false) {
 //    var_dump($object_name);
 //    var_dump($id);
 //    var_dump($lang);
@@ -65,45 +90,7 @@ function openpublishing_fetch_objects($object_name, $id, $lang, $is_collection =
     else {
         $url = $HOST.$guid.$ASPECT.($lang?'?language='.$lang:'');
     }
-
     openpublishing_print_debug('<b>'.$object_name.':'.$id.($lang?':'.$lang:'').'</b></br>'.$url);
-    $response = openpublishing_get_with_auth($url, true);
-    if ( is_wp_error( $response ) ) {
-        error_log("[ERROR] " . $response->get_error_message() . ' ' . $url);
-        openpublishing_print_debug("[ERROR] " . $response->get_error_message() . ' ' . $url);
-    } else {
-            $status = wp_remote_retrieve_response_code($response);
 
-            if (200 == $status) {
-                $json = json_decode(wp_remote_retrieve_body($response));
-                return $json;
-            }
-    }
-}
-
-function openpublishing_fetch_templates() {
-    $templates = [];
-    for ($element = 1; $element <= 10; $element++) {
-        $tag = 'openpublishing_template_tag_' . $element;
-        $template = 'openpublishing_template_id_' . $element;
-        $id = get_option($template);
-        $name = get_option($tag);
-        $tmpl_content = '';
-        if (empty($id) && empty($name)) {
-            break;
-        }
-        // if Elementor is installed
-        if(defined('ELEMENTOR_PATH') && class_exists('Elementor\Widget_Base')) {
-            $tmpl_content = \Elementor\Plugin::$instance->frontend->get_builder_content($id);
-        }
-        //if content is still empty then retrieve it by means of wordpress
-        if (empty($tmpl_content)) {
-            $tmpl_content = get_post_field('post_content', $id);
-        }
-
-        if (!empty($tmpl_content)) {
-            $templates[$name] = $tmpl_content;
-        }
-    }
-    return $templates;
+    return $url;
 }
