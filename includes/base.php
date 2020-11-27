@@ -1,6 +1,7 @@
 <?php
 namespace Openpublishing;
 require_once plugin_dir_path( __FILE__ ) . 'fetch.php';
+require_once plugin_dir_path( __FILE__ ) . 'render.php';
 //require_once plugin_dir_path( __FILE__ ) . 'cache.php';
 
 if (is_admin() == true)
@@ -8,84 +9,11 @@ if (is_admin() == true)
   require_once plugin_dir_path( dirname(__FILE__), 1 ) . 'admin/settings.php';
 }
 
-function openpublishing_get_price($obj) {
-    $price = '';
-
-    if (isset($obj->{'current_prices'}->{'ebook'})) {
-            if (is_object($obj->{'current_prices'}->{'ebook'}->{'price'}) && !$obj->{'current_prices'}->{'ebook'}->{'free'}) {
-                $price = $obj->{'current_prices'}->{'ebook'}->{'price'}->{'formatted'};
-            }
-    } elseif (isset($obj->{'current_prices'}->{'pod'})) {
-            if (is_object($obj->{'current_prices'}->{'pod'}->{'price'}) && !$obj->{'current_prices'}->{'pod'}->{'free'}) {
-                $price = $obj->{'current_prices'}->{'pod'}->{'price'}->{'formatted'};
-            }
-    }
-
-    return $price;
-}
-
-function openpublishing_get_subject($obj, $allObjects) {
-    $subject = '';
-
-    if (isset($obj->{'is_academic'})) {
-            if (is_object($obj->{'academic'})) {
-                $catalogGuid = $obj->{'academic'}->{'catalog'};
-                if ($catalogGuid) {
-                    $catalog = $allObjects[$catalogGuid]->{'name'};
-                    // truncate at first hyphen "-"
-                    $subject = explode('-', $catalog)[0];
-                }
-        }
-    }
-    elseif (isset($obj->{'non_academic'})) {
-        $genreGuid = $obj->{'non_academic'}->{'realm_genres'};
-        if ($genreGuid[0]) {
-            // lets take first realm_genre from a list
-            $subject = $allObjects[$genreGuid[0]]->{'name'};
-        }
-    }
-    return $subject;
-}
-
-function openpublishing_get_picture_source($obj) {
-    $object_type = explode('.', $obj->{'GUID'})[0];
-
-    $source = '';
-    if ($object_type == 'document') {
-        $type = 'normal';
-        $source = 'https://{cdn_host}/images/cover/brand/e-book/{realm_id}/{document_id}_'.$type.'.jpg';
-    }
-    return $source;
-}
-
-function openpublishing_do_template_replacement($tmpl, $guid, $all_objects) {
-    //replace: 1. hardcoded placeholders 2. object properties if placeholders present
-    $obj = $all_objects[$guid];
-    $content = $tmpl;
-    $id = explode('.', $obj->{'GUID'})[1];
-    $content = str_replace('{title}', $obj->{'title'}, $content );
-    $content = str_replace('{subtitle}', $obj->{'subtitle'}, $content );
-    $content = str_replace('{price}', openpublishing_get_price($obj), $content );
-    $content = str_replace('{subject}', openpublishing_get_subject($obj, $all_objects), $content );
-    $content = str_replace('{grin_url}', $obj->{'grin_url'} ?? '', $content );
-    $content = str_replace('{source_url}', openpublishing_get_picture_source($obj), $content );
-    $content = str_replace('{document_id}', $id, $content );
-
-    // experimental
-    $obj_props = get_object_vars($obj);
-    foreach ( $obj_props as $key => $value) {
-        if (is_string($value) || is_numeric($value)) {
-            $content = str_replace('{'.$key.'}', $value, $content);
-        }
-    }
-    return $content;
-}
-
 /**
  * @param string $text
  * @return string
  */
-function openpublishing_replace_tags( $text ) {
+function openpublishing_replace_shortcodes( $text ) {
     if (get_option('openpublishing_legacy_substitution', true)) {
         $text = openpublishing_legacy_replace_tags($text);
     }
@@ -208,7 +136,7 @@ function openpublishing_legacy_replace_tags( $content ) {
         }
         else {
             // if template exists and we got an object data from the server
-            $replacement = openpublishing_do_template_replacement($templates[$tag], $guid, $all_objects);
+            $replacement = Render\openpublishing_do_template_replacement($templates[$tag], $guid, $all_objects);
         }
 
         // add debug info, which is hidden by default

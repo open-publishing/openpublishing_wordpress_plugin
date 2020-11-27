@@ -74,6 +74,15 @@ function openpublishing_add_menu()
                 </td>
                 </td>
             </tr>
+            <tr valign="top">
+                <th scope="row">Experimental Mode</th>
+                <td>
+                    <input type="checkbox" id="openpublishing_experimental_mode" name="openpublishing_experimental_mode"
+                           value="1" <?= checked(1, get_option('openpublishing_experimental_mode'), false) ?> />
+                    <label class="description" for="openpublishing_experimental_mode">Tries to replace all available object properties, in addition to the default ones like {title}, {price} etc. (disable if not needed)</label>
+                </td>
+                </td>
+            </tr>
 
         </table>
         <h3>Open Publishing substitution templates:</h3>
@@ -223,6 +232,10 @@ function openpublishing_register_settings()
     register_setting('openpublishing-settings-group', 'openpublishing_legacy_substitution', array(
         'type' => 'bool',
         'description' => 'Legacy smart substitution enabled or disabled'
+    ));
+    register_setting('openpublishing-settings-group', 'openpublishing_experimental_mode', array(
+        'type' => 'bool',
+        'description' => 'Enable experimental replacement mode'
     ));
     for ($element = 1; $element <= 10; $element++) {
         register_setting('openpublishing-settings-group', 'openpublishing_template_id_' . $element, array(
