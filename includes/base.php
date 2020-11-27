@@ -10,23 +10,36 @@ if (is_admin() == true)
 }
 
 /**
- * @param string $text
+ * @param string $content
  * @return string
  */
-function openpublishing_replace_shortcodes( $text ) {
+function openpublishing_replace_shortcodes( string $content ) {
+    define( 'OPENPUBLISHING_DEBUG', (WP_DEBUG || strstr($content, 'document.getElementsByClassName("OP_debug")')) );
+
     if (get_option('openpublishing_legacy_substitution', true)) {
-        $text = openpublishing_legacy_replace_tags($text);
+        $content = openpublishing_legacy_replace_tags($content);
     }
 
-    $shortcode_data = openpublishing_get_shortcode_data($text);
+    $shortcode_data = openpublishing_get_shortcode_data($content);
+    foreach ( $shortcode_data as $shortcode ) {
+        $template_name = $shortcode['template'];
+        $templates[$template_name] = $templates[$template_name]
+            ?? Render\openpublishing_get_templates($template_name)[$template_name] ?? false;
+        $template = $templates[$template_name];
+
+        $url = Fetch\openpublishing_generate_api_url($shortcode);
+        $res = Fetch\openpublishing_fetch_objects($url);
+        $replacement = Render\openpublishing_do_template_replacement_collection($template, $res);
+        $content = str_replace( $shortcode['replacer'], $replacement, $content );
+    }
 
     //replace common tags with case-insensitive version of str_replace
     $cdn_host_array = explode( '.', get_option( 'openpublishing_api_host' ) );
     $cdn_host_array[0] = 'cdn';
-    $text = str_ireplace( '{cdn_host}', implode('.', $cdn_host_array), $text );
-    $text = str_ireplace( '{realm_id}', get_option('openpublishing_realm_id'), $text );
+    $content = str_ireplace( '{cdn_host}', implode('.', $cdn_host_array), $content );
+    $content = str_ireplace( '{realm_id}', get_option('openpublishing_realm_id'), $content );
 
-    return $text;
+    return $content;
 }
 
 /**
@@ -52,7 +65,7 @@ function openpublishing_get_all_shortcodes( string $content, string $shortcode =
 function openpublishing_get_shortcode_data( $content ) {
     ;
     $errors = new \WP_Error();
-    $data = [];
+    $data_array = [];
     foreach ( openpublishing_get_all_shortcodes($content) as $match ) {
         // Allow [[foo]] syntax for escaping a tag.
         if ( '[' === $match[1] && ']' === $match[6] ) {
@@ -68,31 +81,47 @@ function openpublishing_get_shortcode_data( $content ) {
             $template = $attributes['template'];
         }
 
-        // Max number of hits to get. Will be set to 1 if missing and limited by constant OPENPUBLISHING_DISPLAY_MAX
-        $limit = $attributes['display'] ?? 1;
-        if ($limit > OPENPUBLISHING_DISPLAY_MAX) {
-            $limit = OPENPUBLISHING_DISPLAY_MAX;
+        // Decide between collection and single object
+        if ( empty($attributes['get-by-id']) ) {
+            // collection
+
+            // Max number of hits to get. Will be set to 1 if missing and limited by constant
+            $limit = $attributes['display'] ?? 1;
+            if ($limit > OPENPUBLISHING_DISPLAY_MAX) {
+                $limit = OPENPUBLISHING_DISPLAY_MAX;
+            }
+            $sort = $attributes['sort'] ?? null;
+            $order = $attributes['order'] ?? 'asc';
+            $get_by_position = $attributes['get-by-position'] ?? null;
+            unset($attributes['display'], $attributes['template'], $attributes['sort'],
+                $attributes['get-by-position'], $attributes['get-by-id']);
+
+            $data = [
+                'get-by-position' => $get_by_position,
+                'limit' => $limit,
+                'sort' => $sort,
+                'order' => $order,
+                'filters' => $attributes,
+            ];
+        } else {
+            // single object
+            $data = [
+                'get-by-id' => $attributes['get-by-id'],
+                'filters' => empty($attributes['language']) ? [] : ['language' => $attributes['language']],
+            ];
         }
-
-        $sort = $attributes['sort'] ?? null;
-        $order = $attributes['order'] ?? 'asc';
-        $get_position = $attributes['get-position'] ?? null;
-        unset($attributes['display'], $attributes['template'], $attributes['sort'], $attributes['get-position']);
-
-        $data[] = [
-            'tag'  => $match[2],
-            'template' => $template,
-            'get-position' => $get_position,
-            'limit' => $limit,
-            'sort' => $sort,
-            'order' => $order,
-            'filters' => $attributes,
-        ];
+        $data_array[] = array_merge([
+                'replacer' => $match[0],
+                'tag' => $match[2],
+                'template' => $template,
+            ], $data);
     }
     if ($errors->has_errors()) {
-        echo '<div class="error"><p>' . implode( "</p>\n<p>", $errors->get_error_messages() ) . '</p></div>';
+        openpublishing_print_debug('<div class="error"><p>'
+            . implode( "</p>\n<p>", $errors->get_error_messages() )
+            . '</p></div>');
     }
-    return $data;
+    return $data_array;
 }
 
 /**
@@ -117,13 +146,12 @@ function openpublishing_legacy_replace_tags( $content ) {
         // was the content already fetched by the api?
         if (!array_key_exists($guid, $all_objects)) {
             // (array) thing give us an empty array if function return is empty
-            $is_collection = in_array($object_name, OPENPUBLISHING_COLLECTION_OBJECTS);
+            $is_collection = in_array($object_name, OPENPUBLISHING_LEGACY_COLLECTION_OBJECTS);
             $url = Fetch\openpublishing_legacy_generate_api_url($object_name, $id, $lang, $is_collection);
             $res = Fetch\openpublishing_fetch_objects($url);
-            $objs = $res->OBJECTS;
             $iter = 1;
 
-            foreach ($objs as $obj) {
+            foreach ($res->OBJECTS as $obj) {
                 $all_objects[$obj->GUID] = $obj;
             }
 
@@ -141,7 +169,8 @@ function openpublishing_legacy_replace_tags( $content ) {
         }
         else {
             // if template exists and we got an object data from the server
-            $replacement = Render\openpublishing_do_template_replacement($templates[$tag], $guid, $all_objects);
+            $object = $all_objects[$all_objects[$guid]];
+            $replacement = Render\openpublishing_do_template_replacement($templates[$tag], $object, $all_objects);
         }
 
         // add debug info, which is hidden by default
@@ -165,9 +194,15 @@ function openpublishing_legacy_get_all_tags($templates, $content) {
     if (empty($templates)) {
         return [];
     }
-    $pattern = '/\[(' . implode('|', $templates) . '):(' . implode('|', OPENPUBLISHING_OBJECTS) . ')\.?(\d+)\:?(en|de|fr|es)?\]/';
+    $pattern = '/\[(' . implode('|', $templates) . '):(' . implode('|', OPENPUBLISHING_LEGACY_OBJECTS) . ')\.?(\d+)\:?(en|de|fr|es)?\]/';
 
     // matched 0: whole, 1: tagname, 2: object, 3: id, 4: language (optional)
     preg_match_all($pattern, $content, $matches, PREG_SET_ORDER);
     return $matches;
+}
+
+function openpublishing_print_debug($msg) {
+    if ( OPENPUBLISHING_DEBUG ) {
+        echo('<span class="OP_debug" style="display:none;">' . $msg . '<br></span>');
+    }
 }

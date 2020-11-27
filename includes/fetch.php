@@ -4,10 +4,6 @@ namespace Openpublishing\Fetch;
 // When authorization request fails retry 1 time
 $GLOBALS['openpublishing_auth_retry'] = true;
 
-function openpublishing_print_debug($msg) {
-    print('<span class="OP_debug" style="display:none;">' . $msg . '<br></span>');
-}
-
 function openpublishing_get_auth_token() {
     $new_token = '';
     $HOST = 'https://' . get_option('openpublishing_api_host') . '/auth/auth?';
@@ -57,7 +53,7 @@ function openpublishing_fetch_objects(string $url) {
     $response = openpublishing_get_with_auth($url, true);
     if ( is_wp_error( $response ) ) {
         error_log("[ERROR] " . $response->get_error_message() . ' ' . $url);
-        openpublishing_print_debug("[ERROR] " . $response->get_error_message() . ' ' . $url);
+        \Openpublishing\openpublishing_print_debug("[ERROR] " . $response->get_error_message() . ' ' . $url);
     } else {
         $status = wp_remote_retrieve_response_code($response);
 
@@ -75,22 +71,48 @@ function openpublishing_fetch_objects(string $url) {
  * @return string
  */
 function openpublishing_legacy_generate_api_url($object_name, $id, $lang, $is_collection = false) {
-//    var_dump($object_name);
-//    var_dump($id);
-//    var_dump($lang);
-//    var_dump($is_collection);
-    $HOST = 'https://' . get_option('openpublishing_api_host') . '/resource/v2/';
+    $base_url = 'https://' . get_option('openpublishing_api_host') . '/resource/v2/';
     $ASPECT = '[:basic,non_academic.realm_genres.*]';
     $OBJECT = 'document';
     $guid = $object_name . '.' . $id;
 
+    $language = $lang ? '?language=' . $lang : '';
+
     if ($is_collection) {
-        $url = $HOST.$OBJECT.$ASPECT.'?sort='.$object_name.'__asc&cache=yes&display=10'.($lang?'&language='.$lang:'');
+        $url = $base_url.$OBJECT.$ASPECT.'?sort='.$object_name.'__asc&cache=yes&display=10'. $language;
     }
     else {
-        $url = $HOST.$guid.$ASPECT.($lang?'?language='.$lang:'');
+        $url = $base_url . $guid . $ASPECT . $language;
     }
-    openpublishing_print_debug('<b>'.$object_name.':'.$id.($lang?':'.$lang:'').'</b></br>'.$url);
+    \Openpublishing\openpublishing_print_debug('<b>'.$object_name.':'.$id.($lang?':'.$lang:'').'</b></br>'.$url);
+
+    return $url;
+}
+
+/**
+ * @param array $shortcode_data
+ * @return string
+ */
+function openpublishing_generate_api_url(array $shortcode_data) {
+    $base_url = 'https://' . get_option('openpublishing_api_host') . '/resource/v2/document';
+    $ASPECT = '[:basic,non_academic.realm_genres.*]';
+
+    if (empty($shortcode_data['filters'])) {
+        $filter_query = '';
+    } else {
+        $filters = array_map('urlencode', $shortcode_data['filters']);
+        $filter_query = '&' . http_build_query($filters);
+    }
+
+    if ( empty($shortcode_data['get-by-id']) ) {
+        $sort = $shortcode_data['sort'] ?
+            '&sort=' . urlencode($shortcode_data['sort'] . '__' . $shortcode_data['order']) : '';
+        $url = $base_url . $ASPECT . '?cache=yes&display=' . intval($shortcode_data['limit']) . $sort . $filter_query;
+    }
+    else {
+        $url = $base_url . intval($shortcode_data['get-by-id']) . $ASPECT . $filter_query;
+    }
+    \Openpublishing\openpublishing_print_debug('<b>' . $shortcode_data['replacer'] . ' : ' . '</b></br>' . $url);
 
     return $url;
 }

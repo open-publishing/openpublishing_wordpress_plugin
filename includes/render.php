@@ -17,24 +17,24 @@ function openpublishing_get_price($obj) {
     return $price;
 }
 
-function openpublishing_get_subject($obj, $allObjects) {
+function openpublishing_get_subject($object, $all_objects) {
     $subject = '';
 
-    if (isset($obj->is_academic)) {
-        if (is_object($obj->academic)) {
-            $catalogGuid = $obj->academic->catalog;
-            if ($catalogGuid) {
-                $catalog = $allObjects[$catalogGuid]->name;
+    if (isset($object->is_academic)) {
+        if (is_object($object->academic)) {
+            $catalog_guid = $object->academic->catalog;
+            if ($catalog_guid) {
+                $catalog = $all_objects[$catalog_guid]->name;
                 // truncate at first hyphen "-"
                 $subject = explode('-', $catalog)[0];
             }
         }
     }
-    elseif (isset($obj->non_academic)) {
-        $genreGuid = $obj->non_academic->realm_genres;
-        if ($genreGuid[0]) {
+    elseif (isset($object->non_academic)) {
+        $genre_guid = $object->non_academic->realm_genres;
+        if ($genre_guid[0]) {
             // lets take first realm_genre from a list
-            $subject = $allObjects[$genreGuid[0]]->name;
+            $subject = $all_objects[$genre_guid[0]]->name;
         }
     }
     return $subject;
@@ -51,33 +51,51 @@ function openpublishing_get_picture_source($obj) {
     return $source;
 }
 
-function openpublishing_do_template_replacement($tmpl, $guid, $all_objects, $index = 1) {
+function openpublishing_do_template_replacement_collection($template, $res) {
+    $index = 0;
+    $content = '';
+    $all_objects = [];
+
+    foreach ( $res->OBJECTS as $obj ) {
+        $all_objects[$obj->GUID] = $obj;
+    }
+
+    foreach ( $res->RESULTS as $guid ) {
+        $index++;
+        $content .= openpublishing_do_template_replacement($template, $all_objects[$guid], $all_objects, $index);
+    }
+    return $content;
+}
+
+function openpublishing_do_template_replacement($template, $object, $all_objects, $index = 1) {
+    if ( empty($template) ) {
+        \Openpublishing\openpublishing_print_debug('Unknown template: ' . $template);
+        return;
+    }
     //replace: 1. hardcoded placeholders 2. object properties if placeholders present
-    $obj = $all_objects[$all_objects[$guid]];
-    $content = $tmpl;
-    $id = explode('.', $obj->GUID)[1];
+    $id = explode('.', $object->GUID)[1];
     $replacements = [
-        '{title}' => $obj->title,
-        '{subtitle}' => $obj->subtitle,
-        '{price}' => \Openpublishing\Render\openpublishing_get_price($obj),
-        '{subject}' => \Openpublishing\Render\openpublishing_get_subject($obj, $all_objects),
-        '{grin_url}' => $obj->grin_url ?? '',
-        '{source_url}' => \Openpublishing\Render\openpublishing_get_picture_source($obj),
+        '{title}' => $object->title,
+        '{subtitle}' => $object->subtitle,
+        '{price}' => \Openpublishing\Render\openpublishing_get_price($object),
+        '{subject}' => \Openpublishing\Render\openpublishing_get_subject($object, $all_objects),
+        '{grin_url}' => $object->grin_url ?? '',
+        '{source_url}' => \Openpublishing\Render\openpublishing_get_picture_source($object),
         '{document_id}' => $id,
         '{index}' => $index,
     ];
-    $content = str_replace( array_keys($replacements), $replacements, $content );
 
-    // experimental
     if (get_option('openpublishing_experimental_mode', false)) {
-        $obj_props = get_object_vars($obj);
+        $obj_props = get_object_vars($object);
         foreach ( $obj_props as $key => $value) {
-            if (is_string($value) || is_numeric($value)) {
-                $content = str_replace('{' . $key . '}', $value, $content);
+            $key = '{' . $key . '}';
+            if ( (is_string($value) || is_numeric($value)) && !isset($replacements[$key])) {
+                $replacements[$key] = $value;
             }
         }
     }
-    return $content;
+
+    return str_replace( array_keys($replacements), $replacements, $template );
 }
 
 /**

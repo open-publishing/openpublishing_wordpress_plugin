@@ -17,9 +17,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 require_once plugin_dir_path( __FILE__ ) . 'includes/base.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/document_count.php';
 
-define('OPENPUBLISHING_COLLECTION_OBJECTS', array('bestseller', 'newest', 'most_read'));
-define('OPENPUBLISHING_OBJECTS', array_merge(OPENPUBLISHING_COLLECTION_OBJECTS, array('document')));
 define('OPENPUBLISHING_DISPLAY_MAX', 10);
+define('OPENPUBLISHING_LEGACY_COLLECTION_OBJECTS', array('bestseller', 'newest', 'most_read'));
+define('OPENPUBLISHING_LEGACY_OBJECTS', array_merge(OPENPUBLISHING_LEGACY_COLLECTION_OBJECTS, array('document')));
 
 if (get_option('openpublishing_realm_id') && get_option('openpublishing_api_host')) {
     add_filter( 'the_content', 'OpenPublishing\openpublishing_replace_shortcodes' );
