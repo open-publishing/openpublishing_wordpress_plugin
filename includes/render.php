@@ -75,8 +75,8 @@ function openpublishing_do_template_replacement($template, $object, $all_objects
     //replace: 1. hardcoded placeholders 2. object properties if placeholders present
     $id = explode('.', $object->GUID)[1];
     $replacements = [
-        '{title}' => $object->title,
-        '{subtitle}' => $object->subtitle,
+        '{title}' => $object->title ?? '',
+        '{subtitle}' => $object->subtitle ?? '',
         '{price}' => \Openpublishing\Render\openpublishing_get_price($object),
         '{subject}' => \Openpublishing\Render\openpublishing_get_subject($object, $all_objects),
         '{grin_url}' => $object->grin_url ?? '',

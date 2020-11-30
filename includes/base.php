@@ -14,8 +14,6 @@ if (is_admin() == true)
  * @return string
  */
 function openpublishing_replace_shortcodes( string $content ) {
-    define( 'OPENPUBLISHING_DEBUG', (WP_DEBUG || strstr($content, 'document.getElementsByClassName("OP_debug")')) );
-
     if (get_option('openpublishing_legacy_substitution', true)) {
         $content = openpublishing_legacy_replace_tags($content);
     }
@@ -63,7 +61,6 @@ function openpublishing_get_all_shortcodes( string $content, string $shortcode =
  * @return array
  */
 function openpublishing_get_shortcode_data( $content ) {
-    ;
     $errors = new \WP_Error();
     $data_array = [];
     foreach ( openpublishing_get_all_shortcodes($content) as $match ) {
@@ -81,47 +78,59 @@ function openpublishing_get_shortcode_data( $content ) {
             $template = $attributes['template'];
         }
 
-        // Decide between collection and single object
         if ( empty($attributes['get-by-id']) ) {
-            // collection
-
-            // Max number of hits to get. Will be set to 1 if missing and limited by constant
-            $limit = $attributes['display'] ?? 1;
-            if ($limit > OPENPUBLISHING_DISPLAY_MAX) {
-                $limit = OPENPUBLISHING_DISPLAY_MAX;
-            }
-            $sort = $attributes['sort'] ?? null;
-            $order = $attributes['order'] ?? 'asc';
-            $get_by_position = $attributes['get-by-position'] ?? null;
-            unset($attributes['display'], $attributes['template'], $attributes['sort'],
-                $attributes['get-by-position'], $attributes['get-by-id']);
-
-            $data = [
-                'get-by-position' => $get_by_position,
-                'limit' => $limit,
-                'sort' => $sort,
-                'order' => $order,
-                'filters' => $attributes,
-            ];
+            $data = openpublishing_get_collection_shortcode_data($attributes);
         } else {
-            // single object
-            $data = [
-                'get-by-id' => $attributes['get-by-id'],
-                'filters' => empty($attributes['language']) ? [] : ['language' => $attributes['language']],
-            ];
+            $data = openpublishing_get_single_shortcode_data($attributes);
         }
-        $data_array[] = array_merge([
+        $data_array[] = array_merge($data, [
                 'replacer' => $match[0],
                 'tag' => $match[2],
                 'template' => $template,
-            ], $data);
+            ]);
     }
     if ($errors->has_errors()) {
-        openpublishing_print_debug('<div class="error"><p>'
-            . implode( "</p>\n<p>", $errors->get_error_messages() )
-            . '</p></div>');
+        openpublishing_print_debug('<p>' . implode( "</p>\n<p>", $errors->get_error_messages() ) . '</p>');
     }
     return $data_array;
+}
+
+/**
+ * @param array $attributes All attributes of the shortcode
+ * @return array
+ */
+function openpublishing_get_single_shortcode_data( array $attributes ) : array
+{
+    return [
+        'get-by-id' => $attributes['get-by-id'],
+        'filters' => empty($attributes['language']) ? [] : ['language' => $attributes['language']],
+    ];
+}
+
+/**
+ * @param array $attributes All attributes of the shortcode
+ * @return array
+ */
+function openpublishing_get_collection_shortcode_data( array $attributes ) : array
+{
+    // Max number of hits to get. Will be set to 1 if missing and limited by constant
+    $limit = $attributes['display'] ?? 1;
+    if ($limit > OPENPUBLISHING_DISPLAY_MAX) {
+        $limit = OPENPUBLISHING_DISPLAY_MAX;
+    }
+    $sort = $attributes['sort'] ?? null;
+    $order = $attributes['order'] ?? 'asc';
+    $get_by_position = $attributes['get-by-position'] ?? null;
+    unset($attributes['display'], $attributes['template'], $attributes['sort'],
+        $attributes['get-by-position'], $attributes['get-by-id']);
+
+    return [
+        'get-by-position' => $get_by_position,
+        'limit' => $limit,
+        'sort' => $sort,
+        'order' => $order,
+        'filters' => $attributes,
+    ];
 }
 
 /**
@@ -201,8 +210,18 @@ function openpublishing_legacy_get_all_tags($templates, $content) {
     return $matches;
 }
 
-function openpublishing_print_debug($msg) {
-    if ( OPENPUBLISHING_DEBUG ) {
-        echo('<span class="OP_debug" style="display:none;">' . $msg . '<br></span>');
+/**
+ * @param string $message
+ * @param boolean $return_content If false, message will be echoed, if true message html will be returned
+ */
+function openpublishing_print_debug(string $message, $return_content = false) {
+    $html_message = '';
+    if ( WP_DEBUG ) {
+        $html_message = ('<span class="OP_debug" style="display:none;">' . $message . "<br></span>\n");
+
+        if ( !$return_content ) {
+            echo $html_message;
+        }
     }
+    return $html_message;
 }

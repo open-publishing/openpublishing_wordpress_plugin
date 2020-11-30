@@ -110,7 +110,7 @@ function openpublishing_generate_api_url(array $shortcode_data) {
         $url = $base_url . $ASPECT . '?cache=yes&display=' . intval($shortcode_data['limit']) . $sort . $filter_query;
     }
     else {
-        $url = $base_url . intval($shortcode_data['get-by-id']) . $ASPECT . $filter_query;
+        $url = $base_url . '.' . intval($shortcode_data['get-by-id']) . $ASPECT . $filter_query . '?cache=yes';
     }
     \Openpublishing\openpublishing_print_debug('<b>' . $shortcode_data['replacer'] . ' : ' . '</b></br>' . $url);
 
