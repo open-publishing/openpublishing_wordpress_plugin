@@ -171,6 +171,18 @@ function openpublishing_add_menu() { ?>
                 <td></td>
                 <td></td>
             </tr>
+            <tr>
+                <th>category_id</th>
+                <td>integer</td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <th>brand_id</th>
+                <td>integer</td>
+                <td></td>
+                <td></td>
+            </tr>
             </tbody>
         </table>
         <h4>Language</h4>
