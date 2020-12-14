@@ -27,7 +27,12 @@ function openpublishing_replace_shortcodes( string $content ) {
 
         $url = Fetch\openpublishing_generate_api_url($shortcode);
         $res = Fetch\openpublishing_fetch_objects($url);
-        $replacement = Render\openpublishing_do_template_replacement_collection($template, $res);
+        if (!isset($res->ERROR) && isset($res->OBJECTS) && isset($res->RESULTS)) {
+            $replacement = Render\openpublishing_do_template_replacement_collection($template, $res);
+        } else {
+            openpublishing_print_debug('ERROR -- Shortcode: "' . print_r($shortcode, true) . '" -- ' . print_r($res, true));
+            $replacement = 'Error while fetching data.';
+        }
         $content = str_replace( $shortcode['replacer'], $replacement, $content );
     }
 
@@ -122,7 +127,7 @@ function openpublishing_get_collection_shortcode_data( array $attributes ) : arr
     $order = $attributes['order'] ?? 'asc';
     $get_by_position = $attributes['get-by-position'] ?? null;
     unset($attributes['display'], $attributes['template'], $attributes['sort'],
-        $attributes['get-by-position'], $attributes['get-by-id']);
+        $attributes['get-by-position'], $attributes['get-by-id'], $attributes['order']);
 
     return [
         'get-by-position' => $get_by_position,

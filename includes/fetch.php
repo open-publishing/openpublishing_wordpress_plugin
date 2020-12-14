@@ -52,15 +52,18 @@ function openpublishing_get_with_auth($url, $try_again) {
 function openpublishing_fetch_objects(string $url) {
     $response = openpublishing_get_with_auth($url, true);
     if ( is_wp_error( $response ) ) {
-        error_log("[ERROR] " . $response->get_error_message() . ' ' . $url);
-        \Openpublishing\openpublishing_print_debug("[ERROR] " . $response->get_error_message() . ' ' . $url);
+        $error = $response->get_error_message() . "\t" . $url;
+        error_log('[ERROR] ' . $error);
+        \Openpublishing\openpublishing_print_debug('[ERROR] ' . $error);
     } else {
         $status = wp_remote_retrieve_response_code($response);
 
         if ( 200 == $status ) {
             return json_decode(wp_remote_retrieve_body($response));
         }
+        $error = '[Status-Code] ' . $status . "\t" . $url;
     }
+    return ['ERROR' => $error];
 }
 
 /**
