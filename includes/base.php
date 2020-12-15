@@ -222,7 +222,7 @@ function openpublishing_legacy_get_all_tags($templates, $content) {
 function openpublishing_print_debug(string $message, $return_content = false) {
     $html_message = '';
     if ( WP_DEBUG ) {
-        $html_message = ('<span class="OP_debug" style="display:none;">' . $message . "<br></span>\n");
+        $html_message = ('<span class="OP_debug" style="display:none;">' . esc_html__($message) . "<br></span>\n");
 
         if ( !$return_content ) {
             echo $html_message;
