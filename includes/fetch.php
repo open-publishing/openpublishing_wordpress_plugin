@@ -4,6 +4,9 @@ namespace Openpublishing\Fetch;
 // When authorization request fails retry 1 time
 $GLOBALS['openpublishing_auth_retry'] = true;
 
+/**
+ * @return string
+ */
 function openpublishing_get_auth_token() {
     $new_token = '';
     $HOST = 'https://' . get_option('openpublishing_api_host') . '/auth/auth?';
@@ -26,6 +29,11 @@ function openpublishing_get_auth_token() {
     return $new_token;
 }
 
+/**
+ * @param string $url
+ * @param bool $try_again
+ * @return array|\WP_Error
+ */
 function openpublishing_get_with_auth($url, $try_again) {
     $token = get_option('openpublishing_auth_token');
     if (!$token) {
@@ -107,13 +115,13 @@ function openpublishing_generate_api_url(array $shortcode_data) {
         $filter_query = '&' . http_build_query($filters);
     }
 
-    if ( empty($shortcode_data['get-by-id']) ) {
+    if ( empty($shortcode_data['get_by_id']) ) {
         $sort = $shortcode_data['sort'] ?
             '&sort=' . urlencode($shortcode_data['sort'] . '__' . $shortcode_data['order']) : '';
         $url = $base_url . $ASPECT . '?cache=yes&display=' . intval($shortcode_data['limit']) . $sort . $filter_query;
     }
     else {
-        $url = $base_url . '.' . intval($shortcode_data['get-by-id']) . $ASPECT . $filter_query . '?cache=yes';
+        $url = $base_url . '.' . intval($shortcode_data['get_by_id']) . $ASPECT . $filter_query . '&cache=yes';
     }
     \Openpublishing\openpublishing_print_debug('<b>' . $shortcode_data['replacer'] . ' : ' . '</b></br>' . $url);
 

@@ -23,7 +23,6 @@ define('OPENPUBLISHING_LEGACY_OBJECTS', array_merge(OPENPUBLISHING_LEGACY_COLLEC
 
 if (get_option('openpublishing_realm_id') && get_option('openpublishing_api_host')) {
     add_filter( 'the_content', 'OpenPublishing\openpublishing_replace_shortcodes' );
-    //add_shortcode( 'openpublishing', 'Openpublishing\Cache\openpublishing_add_shortcodes_to_cache', 1 );
 }
 else {
     error_log("[ERROR] " . 'Please configure Openpublishing plugin with API Host and Realm ID and Brand name');

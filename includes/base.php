@@ -2,7 +2,6 @@
 namespace Openpublishing;
 require_once plugin_dir_path( __FILE__ ) . 'fetch.php';
 require_once plugin_dir_path( __FILE__ ) . 'render.php';
-//require_once plugin_dir_path( __FILE__ ) . 'cache.php';
 
 if (is_admin() == true)
 {
@@ -62,6 +61,7 @@ function openpublishing_get_all_shortcodes( string $content, string $shortcode =
 }
 
 /**
+ * Returns an array with the shortcodes information found in the content
  * @param string $content The complete page or post content
  * @return array
  */
@@ -83,7 +83,7 @@ function openpublishing_get_shortcode_data( $content ) {
             $template = $attributes['template'];
         }
 
-        if ( empty($attributes['get-by-id']) ) {
+        if ( empty($attributes['get_by_id']) ) {
             $data = openpublishing_get_collection_shortcode_data($attributes);
         } else {
             $data = openpublishing_get_single_shortcode_data($attributes);
@@ -101,19 +101,19 @@ function openpublishing_get_shortcode_data( $content ) {
 }
 
 /**
- * @param array $attributes All attributes of the shortcode
+ * @param array $attributes All attributes of the shortcodes for a single result defined by id
  * @return array
  */
 function openpublishing_get_single_shortcode_data( array $attributes ) : array
 {
     return [
-        'get-by-id' => $attributes['get-by-id'],
+        'get_by_id' => $attributes['get_by_id'],
         'filters' => empty($attributes['language']) ? [] : ['language' => $attributes['language']],
     ];
 }
 
 /**
- * @param array $attributes All attributes of the shortcode
+ * @param array $attributes All attributes of the shortcodes for collections
  * @return array
  */
 function openpublishing_get_collection_shortcode_data( array $attributes ) : array
@@ -127,7 +127,7 @@ function openpublishing_get_collection_shortcode_data( array $attributes ) : arr
     $order = $attributes['order'] ?? 'asc';
     $get_by_position = $attributes['get-by-position'] ?? null;
     unset($attributes['display'], $attributes['template'], $attributes['sort'],
-        $attributes['get-by-position'], $attributes['get-by-id'], $attributes['order']);
+        $attributes['get-by-position'], $attributes['get_by_id'], $attributes['order']);
 
     return [
         'get-by-position' => $get_by_position,
@@ -139,8 +139,8 @@ function openpublishing_get_collection_shortcode_data( array $attributes ) : arr
 }
 
 /**
- * @param string $content
- * @return string|string[]
+ * @param string $content Normally the page or post content
+ * @return string
  */
 function openpublishing_legacy_replace_tags( $content ) {
     $all_objects = [];
@@ -218,6 +218,7 @@ function openpublishing_legacy_get_all_tags($templates, $content) {
 /**
  * @param string $message
  * @param boolean $return_content If false, message will be echoed, if true message html will be returned
+ * @return string
  */
 function openpublishing_print_debug(string $message, $return_content = false) {
     $html_message = '';
