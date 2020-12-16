@@ -219,7 +219,7 @@ function openpublishing_add_menu() { ?>
             <tr>
                 <th>ean</th>
                 <td>string</td>
-                <td>Filter results by BISAC category.</td>
+                <td>Filter results by ean.</td>
                 <td><code>ean="9783638876346"</code></td>
             </tr>
             <tr>
